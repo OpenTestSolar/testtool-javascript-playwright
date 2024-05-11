@@ -1,0 +1,28 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.39.0",
+    "@tencent/testsolar_sdk": "0.0.10",
+    "@types/crypto-js": "^4.2.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.9.0",
+    "crypto-js": "^4.2.0",
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
+    "fs-extra": "^11.2.0",
+    "pnpm": "^9.0.6"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
+}
