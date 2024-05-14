@@ -1,7 +1,7 @@
 schemaVersion: 1.0
 name: playwright
 lang: javascript
-defaultBaseImage: mirrors.tencent.com/testsolar-base/javascript:node18
+defaultBaseImage: node18
 parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
   - name: extraArgs
     value: playwright额外参数
