@@ -35,7 +35,7 @@ testTool: # 测试工具相关配置
 
 ```yaml
 schemaVersion: 1.0
-baseImage: mirrors.tencent.com/testsolar-base/javascript:node18
+baseImage: node:18
 testTool:
   use: github.com/OpenTestSolar/testtool-javascript-playwright@main:playwright
 ```
