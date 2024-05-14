@@ -6,30 +6,30 @@
 
 ```yaml
 testTool:
-  use: git.woa.com/TestSolar/TestTool/javascript@master:playwright
+  use: github.com/OpenTestSolar/testtool-javascript-playwright@main:playwright
 ```
 
 我们提供`git`和`http`两种使用方式。
 
 | **访问协议** | **访问地址**                                                                                      | **说明** |
 | ------------ | ------------------------------------------------------------------------------------------------- | -------- |
-| `git`        | `git.woa.com/TestSolar/TestTool/javascript@master:playwright`                                     |          |
-| `http`       | `https://mirrors.tencent.com/repository/generic/testsolar/testtools/javascript@master:playwright` |          |
+| `git`        | `github.com/OpenTestSolar/testtool-javascript-playwright@main:playwright`                                     |          |
+| `http`       | `TODO` |          |
 
 ### 分支/tag切换
 
 当临时使用到特殊版本的测试工具时，可切换到对应的分支或者tag。
 
-格式：`git.woa.com/TestSolar/TestTool/javascript@{BRANCH_OR_TAG}:playwright`
+格式：`github.com/OpenTestSolar/testtool-javascript-playwright@{BRANCH_OR_TAG}:playwright`
 
 ```yaml
 testTool: # 测试工具相关配置
-  use: git.woa.com/TestSolar/TestTool/javascript@3.12_promote:playwright
+  use: github.com/OpenTestSolar/testtool-javascript-playwright@3.12_promote:playwright
 ```
 
 ## 基础镜像
 
-默认使用的基础镜像为：`mirrors.tencent.com/testsolar-base/javascript:node18`
+默认使用的基础镜像为：`node:18`
 
 如果要修改使用自己的基础镜像，可以在 `.testsolar/testcontainer.yaml` 设置 `baseImage`：
 
@@ -37,7 +37,7 @@ testTool: # 测试工具相关配置
 schemaVersion: 1.0
 baseImage: mirrors.tencent.com/testsolar-base/javascript:node18
 testTool:
-  use: git.woa.com/TestSolar/TestTool/javascript@master:playwright
+  use: github.com/OpenTestSolar/testtool-javascript-playwright@main:playwright
 ```
 
 ## 配置参数
@@ -46,7 +46,7 @@ testTool:
 
 ```yaml
 testTool:
-  use: git.woa.com/TestSolar/TestTool/javascript@master:playwright
+  use: github.com/OpenTestSolar/testtool-javascript-playwright@main:playwright
   with:
     extraArgs: ""
 ```
