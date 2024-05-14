@@ -6,14 +6,14 @@ import * as os from "os";
 import * as path from "path";
 import { parseISO, addMilliseconds } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import { TestCase } from "@tencent/testsolar_sdk/src/testsolar_sdk/model/test";
+import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 import {
   TestResult,
   TestCaseStep,
   TestCaseLog,
   LogLevel,
   ResultType,
-} from "@tencent/testsolar_sdk/src/testsolar_sdk/model/testresult";
+} from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
 const exec = util.promisify(child_process.exec);
 

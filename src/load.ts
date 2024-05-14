@@ -12,10 +12,10 @@ import {
 import {
   LoadError,
   LoadResult,
-} from "@tencent/testsolar_sdk/src/testsolar_sdk/model/load";
-import { TestCase } from "@tencent/testsolar_sdk/src/testsolar_sdk/model/test";
+} from "testsolar-oss-sdk/src/testsolar_sdk/model/load";
+import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 
-import Reporter from "@tencent/testsolar_sdk/src/testsolar_sdk/reporter";
+import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
 async function collectTestCases(
   projPath: string,

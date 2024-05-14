@@ -7,7 +7,7 @@ import {
   createTestResults,
 } from "./playwrightx/utils";
 
-import Reporter from "@tencent/testsolar_sdk/src/testsolar_sdk/reporter";
+import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
 async function runTestCase(runParamFile: string): Promise<void> {
   console.log("Pipe file: ", runParamFile);
