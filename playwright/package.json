@@ -20,7 +20,7 @@
     "date-fns-tz": "^2.0.0",
     "fs-extra": "^11.2.0",
     "pnpm": "^9.0.6",
-    "testsolar-oss-sdk": "^0.0.15"
+    "testsolar-oss-sdk": "^0.0.16"
   },
   "devDependencies": {
     "prettier": "^3.2.5"
