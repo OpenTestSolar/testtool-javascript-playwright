@@ -30,3 +30,21 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  publish-metadata:
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.11'
+      - name: Release metadata
+        run: |
+          git config --global user.name 'asiazhang'
+          git config --global user.email 'asiazhang2002@gmail.com'
+          pip install solar-registry
+          solar-registry pull-request playwright
+        env:
+          GH_TOKEN: ${{ secrets.TESTSOLAR_TOKEN }}
