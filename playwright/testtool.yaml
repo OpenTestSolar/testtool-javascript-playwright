@@ -2,6 +2,12 @@ schemaVersion: 1.0
 name: playwright
 lang: javascript
 defaultBaseImage: node:18
+langType: INTERPRETED
+description: TestSolar Support For PlayWright
+homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
+versionFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json
+indexFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/stable.index.json
+scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-playwright
 parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
   - name: extraArgs
     value: playwright额外参数
