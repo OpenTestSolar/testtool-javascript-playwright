@@ -27,11 +27,18 @@ jobs:
     - uses: pnpm/action-setup@v4
       with:
         version: 9
-    - run: pnpm install
+    - run: |
+        cd playwright
+        pnpm install
     - name: Eslint check
       run: |
+        cd playwright
         pnpm run check
     - name: Run unit tests
-      run: pnpm run test
-    - run: pnpm run build
+      run: |
+        cd playwright
+        pnpm run test
+    - run: |
+        cd playwright
+        pnpm run build
     

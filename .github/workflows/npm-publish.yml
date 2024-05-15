@@ -15,9 +15,15 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install
-      - run: pnpm run test
-      - run: pnpm run build
+      - run: |
+          cd playwright
+          pnpm install
+      - run: |
+          cd playwright
+          pnpm run test
+      - run:
+          cd playwright
+          pnpm run build
 
   publish-npm:
     needs: build
@@ -31,9 +37,15 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install
-      - run: pnpm run build
-      - run: pnpm publish
+      - run: |
+          cd playwright
+          pnpm install
+      - run: |
+          cd playwright
+          pnpm run build
+      - run: |
+          cd playwright
+          pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
