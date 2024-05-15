@@ -15,8 +15,13 @@ npm config set registry https://mirrors.tencent.com/npm/
 
 npm install
 
-npm install @tencent/testsolar_sdk@latest
-
 npm install typescript
 
 npx tsc
+
+# 设置环境变量
+export PLAYWRIGHT_BROWSERS_PATH=/tmp/playwright_ms_browser
+
+# Install browsers
+npx playwright install-deps
+npx playwright install

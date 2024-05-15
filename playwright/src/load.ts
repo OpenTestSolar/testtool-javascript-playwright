@@ -32,7 +32,7 @@ async function collectTestCases(
 
     // 动态安装依赖
     const installCommand =
-      "npm cache clean --force && npm install -g pnpm && pnpm install @playwright/test  && pnpm install && pnpm list";
+      "npm cache clean --force && npm install -g pnpm && pnpm install @playwright/test  && pnpm install && pnpm list && npx playwright install";
     console.log("Run Command: ", installCommand);
     const { stdout, stderr } = await executeCommand(installCommand);
     console.log("stdout:", stdout);
