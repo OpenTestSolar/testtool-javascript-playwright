@@ -30,7 +30,7 @@ async function collectTestCases(
     process.chdir(projPath);
     console.log(`Current directory: ${process.cwd()}`);
 
-    // 动态安装依赖
+    // 避免镜像中依赖目录被覆盖并且playwright版本不是最新，采用动态安装依赖和浏览器
     const installCommand =
       "npm cache clean --force && npm install -g pnpm && pnpm install @playwright/test  && pnpm install && pnpm list && npx playwright install";
     console.log("Run Command: ", installCommand);
