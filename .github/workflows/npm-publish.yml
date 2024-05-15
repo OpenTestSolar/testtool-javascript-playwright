@@ -1,0 +1,68 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: |
+          cd playwright
+          pnpm install
+      - run: |
+          cd playwright
+          pnpm run test
+      - run:
+          cd playwright
+          pnpm run build
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: |
+          cd playwright
+          pnpm install
+      - run: |
+          cd playwright
+          pnpm run build
+      - run: |
+          cd playwright
+          pnpm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  publish-metadata:
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.11'
+      - name: Release metadata
+        run: |
+          git config --global user.name 'asiazhang'
+          git config --global user.email 'asiazhang2002@gmail.com'
+          pip install solar-registry
+          solar-registry pull-request playwright
+        env:
+          GH_TOKEN: ${{ secrets.TESTSOLAR_TOKEN }}
