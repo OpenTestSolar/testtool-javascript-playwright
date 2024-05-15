@@ -1,7 +1,7 @@
 {
   "name": "testsolar-oss-playwright",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "TestSolar support for playwright tool",
   "main": "main.js",
   "scripts": {
     "test": "jest --coverage",
