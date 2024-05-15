@@ -22,6 +22,6 @@ npx tsc
 # 设置环境变量
 export PLAYWRIGHT_BROWSERS_PATH=/tmp/playwright_ms_browser
 
-# Install browsers
+# 安装浏览器
 npx playwright install-deps
 npx playwright install
