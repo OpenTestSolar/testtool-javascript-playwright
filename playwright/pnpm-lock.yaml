@@ -11,15 +11,6 @@ importers:
       '@playwright/test':
         specifier: ^1.39.0
         version: 1.39.0
-      '@types/crypto-js':
-        specifier: ^4.2.2
-        version: 4.2.2
-      '@types/fs-extra':
-        specifier: ^11.0.4
-        version: 11.0.4
-      '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
@@ -32,9 +23,6 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
-      pnpm:
-        specifier: ^9.0.6
-        version: 9.1.1
       testsolar-oss-sdk:
         specifier: ^0.0.16
         version: 0.0.16
@@ -45,6 +33,15 @@ importers:
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
+      '@types/crypto-js':
+        specifier: ^4.2.2
+        version: 4.2.2
+      '@types/fs-extra':
+        specifier: ^11.0.4
+        version: 11.0.4
+      '@types/node':
+        specifier: ^20.9.0
+        version: 20.9.0
       eslint:
         specifier: ^9.2.0
         version: 9.2.0
@@ -1347,11 +1344,6 @@ packages:
   playwright@1.39.0:
     resolution: {integrity: sha512-naE5QT11uC/Oiq0BwZ50gDmy8c8WLPRTEWuSSFVG2egBka/1qMoSqYQcROMT9zLwJ86oPofcTH2jBY/5wWOgIw==}
     engines: {node: '>=16'}
-    hasBin: true
-
-  pnpm@9.1.1:
-    resolution: {integrity: sha512-FOkVdZwR936sB/q6TQGcGT7IY3Ip5i7Jnu+3zzw7dcZER4grfEhRQkUe46a0CAWc37e3+gNBuXXxLQ92KccRlQ==}
-    engines: {node: '>=18.12'}
     hasBin: true
 
   prelude-ls@1.2.1:
@@ -3260,8 +3252,6 @@ snapshots:
       playwright-core: 1.39.0
     optionalDependencies:
       fsevents: 2.3.2
-
-  pnpm@9.1.1: {}
 
   prelude-ls@1.2.1: {}
 
