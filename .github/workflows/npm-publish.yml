@@ -21,7 +21,7 @@ jobs:
       - run: |
           cd playwright
           pnpm run test
-      - run:
+      - run: |
           cd playwright
           pnpm run build
 
