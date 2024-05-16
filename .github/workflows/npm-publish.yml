@@ -45,7 +45,7 @@ jobs:
           pnpm run build
       - run: |
           cd playwright
-          pnpm publish
+          pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
