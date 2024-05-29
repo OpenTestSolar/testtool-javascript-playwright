@@ -1,7 +1,6 @@
 schemaVersion: 1.0
 name: playwright
 lang: javascript
-version: '0.1.0'
 defaultBaseImage: node:18
 langType: INTERPRETED
 homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
