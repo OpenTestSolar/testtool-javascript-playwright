@@ -13,10 +13,3 @@ parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
 entry:
   load: "node /testtools/playwright/src/load.js $1"
   run: "node /testtools/playwright/src/run.js $1"
-supportOS:
-  - windows
-  - linux
-  - darwin
-supportArch:
-  - amd64
-  - arm64
