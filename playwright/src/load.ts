@@ -17,7 +17,7 @@ import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
-async function collectTestCases(
+export async function collectTestCases(
   projPath: string,
   testSelectors: string[],
 ): Promise<LoadResult> {
@@ -102,7 +102,7 @@ async function collectTestCases(
   return result;
 }
 
-async function loadTestCasesFromFile(filePath: string): Promise<void> {
+export async function loadTestCasesFromFile(filePath: string): Promise<void> {
   console.log("Pipe file: ", filePath);
 
   // 读取文件并解析 JSON
