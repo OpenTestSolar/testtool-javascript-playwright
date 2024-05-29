@@ -5,8 +5,7 @@ lang: javascript
 version: '0.1.0'
 defaultBaseImage: node:18
 langType: INTERPRETED
-description:  |-
-  TestSolar Support For playwright
+description: TestSolar Support For playwright
 homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
 versionFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json
 indexFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/stable.index.json
