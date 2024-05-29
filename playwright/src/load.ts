@@ -17,7 +17,7 @@ import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
-async function collectTestCases(
+export async function collectTestCases(
   projPath: string,
   testSelectors: string[],
 ): Promise<LoadResult> {
@@ -54,9 +54,7 @@ async function collectTestCases(
       console.log("stderr:", stderr);
     }
 
-    // 解析output.json文件内容, 待完善，重跑用例加上数据驱动
-    // const jsonResult = parseJsonFile(projPath, 'testSolarOutput.json');
-    // const loadCaseResult = getKeysWithProjectId(jsonResult)
+    //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
 
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const testData = JSON.parse(fileContent);
@@ -87,7 +85,7 @@ async function collectTestCases(
     console.log("filter testcases: ", filterResult);
 
     // 提取用例数据
-    filterResult.forEach((filteredTestCase: any) => {
+    filterResult.forEach((filteredTestCase: string) => {
       const [path, descAndName] = filteredTestCase.split("?");
       const test = new TestCase(`${path}?${descAndName}`, {});
       result.Tests.push(test);
@@ -97,12 +95,13 @@ async function collectTestCases(
     const errorMessage =
       (error as Error).message ||
       "Parse json file error, please check the file content!";
+    console.error(errorMessage);
   }
 
   return result;
 }
 
-async function loadTestCasesFromFile(filePath: string): Promise<void> {
+export async function loadTestCasesFromFile(filePath: string): Promise<void> {
   console.log("Pipe file: ", filePath);
 
   // 读取文件并解析 JSON

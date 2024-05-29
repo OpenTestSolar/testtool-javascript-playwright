@@ -9,7 +9,7 @@ import {
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
-async function runTestCase(runParamFile: string): Promise<void> {
+export async function runTestCase(runParamFile: string): Promise<void> {
   console.log("Pipe file: ", runParamFile);
   const fileContent = fs.readFileSync(runParamFile, "utf-8");
   const data = JSON.parse(fileContent);
