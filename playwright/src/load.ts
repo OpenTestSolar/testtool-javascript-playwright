@@ -54,9 +54,7 @@ export async function collectTestCases(
       console.log("stderr:", stderr);
     }
 
-    // 解析output.json文件内容, 待完善，重跑用例加上数据驱动
-    // const jsonResult = parseJsonFile(projPath, 'testSolarOutput.json');
-    // const loadCaseResult = getKeysWithProjectId(jsonResult)
+    //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
 
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const testData = JSON.parse(fileContent);
@@ -97,6 +95,7 @@ export async function collectTestCases(
     const errorMessage =
       (error as Error).message ||
       "Parse json file error, please check the file content!";
+    console.error(errorMessage);
   }
 
   return result;

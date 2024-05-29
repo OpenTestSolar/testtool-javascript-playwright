@@ -181,7 +181,7 @@ export const isFileOrDirectory = (path: string): Promise<number> => {
   return new Promise((resolve, reject) => {
     fs.stat(path, (err, stats) => {
       if (err) {
-        resolve(0);
+        reject(err);
         return;
       }
 
@@ -440,21 +440,6 @@ export function parseJsonFile(
   }
 }
 
-// 获取包含项目 ID 的键列表
-export function getKeysWithProjectId(record: RecordType): string[] {
-  const resultList: string[] = [];
-
-  for (const key in record) {
-    if (record.hasOwnProperty(key)) {
-      const projectId = record[key].projectId;
-      const combinedKey = key + "/" + projectId;
-      resultList.push(combinedKey);
-    }
-  }
-
-  return resultList;
-}
-
 export function createTempDirectory(): string {
   const prefix = "caseOutPut";
   const tempDirectory = path.join(os.tmpdir(), `${prefix}-${Date.now()}`);
@@ -480,9 +465,9 @@ export async function executeCommands(
   const results: Record<string, SpecResult[]> = {};
 
   const { stdout, stderr } = await executeCommand(command);
-  // console.log(
-  //   `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
-  // );
+  console.log(
+    `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
+  );
   // 解析 JSON 文件并处理结果
   const jsonFile = process.env.PLAYWRIGHT_JSON_OUTPUT_NAME || "result.json";
   const testResults = parseJsonFile(projPath, jsonFile, cases);
