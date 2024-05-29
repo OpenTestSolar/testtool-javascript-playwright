@@ -17,6 +17,83 @@ import {
 
 const exec = util.promisify(child_process.exec);
 
+interface ResultError {
+  message: string;
+}
+
+interface Result {
+  startTime: string;
+  duration: number;
+  status: string;
+  error?: ResultError;
+  errors?: ResultError[];
+}
+
+interface Test {
+  projectId: string;
+  results: Result[];
+}
+
+interface Spec {
+  title: string;
+  file: string;
+  tests?: Test[];
+}
+
+interface Suite {
+  title: string;
+  file: string;
+  suites?: Suite[];
+  specs: Spec[];
+}
+
+interface Data {
+  config: {
+    rootDir: string;
+  };
+  suites: Suite[];
+}
+
+interface Location {
+  file: string;
+  line: number;
+  column: number;
+}
+
+interface Error {
+  message: string;
+  stack: string;
+  location: Location;
+  snippet: string;
+}
+
+interface Stats {
+  startTime: string;
+  duration: number;
+}
+
+interface JsonData {
+  stats: Stats;
+  suites: Suite[];
+  errors: Error[];
+}
+
+interface SpecResult{
+  projectID: string | null;
+  result: string;
+  duration: number;
+  startTime: number;
+  endTime: number;
+  message: string;
+  content: string;
+}
+
+interface RecordValue {
+  projectId: string;
+}
+
+type RecordType = Record<string, RecordValue>;
+
 // 执行命令并返回结果
 export async function executeCommand(
   command: string,
@@ -38,10 +115,10 @@ export async function executeCommand(
 }
 
 export function parseErrorCases(
-  jsonData: any,
+  jsonData: JsonData,
   cases: string[],
-): Record<string, any> {
-  const caseResults: Record<string, any> = {};
+): Record<string, SpecResult[]> {
+  const caseResults: Record<string, SpecResult[]> = {};
 
   // 获取统计信息
   const startTime = jsonData.stats.startTime;
@@ -167,17 +244,16 @@ export const filterTestcases = async (
 // 解析测试用例
 export const parseTestcase = (
   projPath: string,
-  data: any,
+  data: Data,
   rootDir: string | null = null,
 ): string[] => {
   let testcases: string[] = [];
   const rootPath = rootDir ? rootDir : data.config.rootDir;
 
-  data.suites.forEach((suite: any) => {
+  data.suites.forEach((suite: Suite) => {
     let casePath = (rootPath + "/" + suite.file).replace(`${projPath}/`, "");
-    // console.log(`case_path:${casePath}`)
     if (suite.suites) {
-      const cases = parseTestcase(projPath, suite, rootPath);
+      const cases = parseTestcase(projPath, { config: data.config, suites: suite.suites }, rootPath);
       testcases = testcases.concat(cases);
     } else {
       let desc = "";
@@ -188,10 +264,9 @@ export const parseTestcase = (
         desc = suite.title;
       }
 
-      suite.specs.forEach((spec: any) => {
+      suite.specs.forEach((spec: Spec) => {
         const caseName = spec.title;
-        const testcase =
-          casePath + "?" + (desc ? `${desc} ${caseName}` : caseName);
+        const testcase = casePath + "?" + (desc ? `${desc} ${caseName}` : caseName);
         testcases.push(encodeURI(testcase));
       });
     }
@@ -251,16 +326,16 @@ export function parseTimeStamp(
 // 解析 JSON 内容并返回用例结果
 export function parseJsonContent(
   projPath: string,
-  data: any,
+  data: Data,
   rootDir: string | null = null,
-): Record<string, any> {
+): Record<string, SpecResult[]> {
   console.log("开始解析 JSON 内容...");
   const rootPath = data.config.rootDir || rootDir;
   console.log(`使用根路径: ${rootPath}`);
-  const caseResults: Record<string, any> = {};
+  const caseResults: Record<string, SpecResult[]> = {};
 
   // 解析 suites 数组并处理用例结果
-  const parseSuites = (suites: any[], currentRootPath: string) => {
+  const parseSuites = (suites: Suite[], currentRootPath: string | null) => {
     console.log(`正在解析 suites。suites 数量: ${suites.length}`);
     for (const suite of suites) {
       const desc = suite.title === suite.file ? "" : suite.title;
@@ -277,7 +352,7 @@ export function parseJsonContent(
           );
           const specName = `${specFile}?${desc ? desc + " " : ""}${specTitle}`;
           console.log(`Spec 名称: ${specName}`);
-          let specResult: Record<string, any> = {};
+          let specResult: SpecResult | null = null;
 
           if (spec.tests) {
             console.log(`发现 tests。tests 数量: ${spec.tests.length}`);
@@ -320,9 +395,6 @@ export function parseJsonContent(
           } else {
             if (specResult) {
               console.log(`为 ${specName} 追加 spec 结果`);
-              if (!Array.isArray(caseResults[specName])) {
-                caseResults[specName] = [caseResults[specName]];
-              }
               caseResults[specName].push(specResult);
             }
           }
@@ -347,7 +419,7 @@ export function parseJsonFile(
   projPath: string,
   jsonFile: string,
   cases: string[],
-): Record<string, any> {
+): Record<string, SpecResult[]> {
   console.log(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
@@ -369,7 +441,7 @@ export function parseJsonFile(
 }
 
 // 获取包含项目 ID 的键列表
-export function getKeysWithProjectId(record: Record<string, any>): string[] {
+export function getKeysWithProjectId(record: RecordType): string[] {
   const resultList: string[] = [];
 
   for (const key in record) {
@@ -391,8 +463,10 @@ export function createTempDirectory(): string {
     fs.mkdirSync(tempDirectory);
     console.log(`Temporary directory created: ${tempDirectory}`);
     return tempDirectory;
-  } catch (error: any) {
-    console.error(`Failed to create temporary directory: ${error.message}`);
+  } catch (error) {
+    // 这里我们假设捕获的错误是 Error 类型的实例
+    const message = (error instanceof Error) ? error.message : 'Unknown error';
+    console.error(`Failed to create temporary directory: ${message}`);
     throw error;
   }
 }
@@ -402,8 +476,8 @@ export async function executeCommands(
   projPath: string,
   command: string,
   cases: string[],
-): Promise<Record<string, any>> {
-  const results: Record<string, any> = {};
+): Promise<Record<string, SpecResult[]>> {
+  const results: Record<string, SpecResult[]> = {};
 
   const { stdout, stderr } = await executeCommand(command);
   // console.log(
@@ -450,7 +524,7 @@ export function groupTestCasesByPath(
   return groupedTestCases;
 }
 
-export function createTestResults(output: Record<string, any[]>): TestResult[] {
+export function createTestResults(output: Record<string, SpecResult[]>): TestResult[] {
   const testResults: TestResult[] = [];
 
   for (const [testCase, results] of Object.entries(output)) {
