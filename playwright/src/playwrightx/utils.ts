@@ -88,12 +88,6 @@ interface SpecResult{
   content: string;
 }
 
-interface RecordValue {
-  projectId: string;
-}
-
-type RecordType = Record<string, RecordValue>;
-
 // 执行命令并返回结果
 export async function executeCommand(
   command: string,
