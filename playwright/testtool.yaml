@@ -1,9 +1,17 @@
 schemaVersion: 1.0
 name: playwright
+nameZh: Playwright自动化测试
 lang: javascript
+version: '0.1.0'
 defaultBaseImage: node:18
 langType: INTERPRETED
+description:  |-
+  TestSolar Support For playwright
 homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
+versionFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json
+indexFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/stable.index.json
+scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-playwright
+gitPkgUrl: https://github.com/OpenTestSolar/testtool-javascript-playwright.git
 parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
   - name: extraArgs
     value: playwright额外参数
@@ -12,3 +20,10 @@ parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
 entry:
   load: "node /testtools/playwright/src/load.js $1"
   run: "node /testtools/playwright/src/run.js $1"
+supportOS:
+  - windows
+  - linux
+  - darwin
+supportArch:
+  - amd64
+  - arm64
