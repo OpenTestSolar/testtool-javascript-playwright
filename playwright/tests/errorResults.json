@@ -1,0 +1,22 @@
+{
+    "config": {
+        "rootDir": "/project/tests"
+    },
+    "stats": {
+        "startTime": "2023-01-01T00:00:00Z",
+        "duration": 1000
+    },
+    "suites": [],
+    "errors": [
+        {
+            "message": "Error message",
+            "stack": "Error stack",
+            "location": {
+                "file": "test.js",
+                "line": 1,
+                "column": 1
+            },
+            "snippet": "Error snippet"
+        }
+    ]
+}

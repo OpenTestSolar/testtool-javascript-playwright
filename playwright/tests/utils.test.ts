@@ -111,6 +111,14 @@ describe('filterTestcases', () => {
         expect(result).toEqual(['tests/sum.test.ts?sum module adds 1 + 2 to equal 3']);
     });
 
+    test('should filter test cases based on selector dirs', async () => {
+        const testSelectors = ['tests'];
+        const parsedTestcases = ['tests/sum.test.ts?sum module adds 1 + 2 to equal 3'];
+        const result = await filterTestcases(testSelectors, parsedTestcases);
+        expect(result).toEqual(['tests/sum.test.ts?sum module adds 1 + 2 to equal 3']);
+    });
+
+
     test('should exclude test cases based on selectors', async () => {
         const testSelectors = ['test1', 'test2'];
         const parsedTestcases = ['test1', 'test2', 'test3'];
@@ -137,10 +145,28 @@ describe('parseTestcase', () => {
                     file: 'suite1.js',
                     specs: [{ title: 'Spec 1', file: 'spec1.js' }],
                 },
+                
+                {
+                    title: 'Suite 1',
+                    file: 'suite1.js',
+                    specs: [],
+                    suites: [
+                        {
+                            title: 'Suite 2',
+                            file: 'suite2.js',
+                            specs: [{ title: 'Spec 2', file: 'spec2.js' }],
+                        }
+                    ]
+                },
+                {
+                    title: 'suite3.js',
+                    file: 'suite3.js',
+                    specs: [{ title: 'Spec 1', file: 'spec1.js' }],
+                }
             ],
         };
         const result = parseTestcase(projPath, data);
-        expect(result).toEqual(['tests/suite1.js?Suite%201%20Spec%201']);
+        expect(result).toEqual(['tests/suite1.js?Suite%201%20Spec%201', 'tests/suite2.js?Suite%202%20Spec%202', 'tests/suite3.js?Spec%201']);
     });
 });
 
@@ -188,8 +214,71 @@ describe('parseJsonContent', () => {
                 {
                     title: 'Suite 1',
                     file: 'suite1.js',
-                    specs: [{ title: 'Spec 1', file: 'spec1.js', tests: [{ projectId: 'proj1', results: [{ startTime: '2023-01-01T00:00:00Z', duration: 1000, status: 'passed' }] }] }],
+                    specs: [
+                        { 
+                            title: 'Spec 1', 
+                            file: 'spec1.js', 
+                            tests: [
+                                { 
+                                    projectId: 'proj1', 
+                                    results: [
+                                        { 
+                                            startTime: '2023-01-01T00:00:00Z', 
+                                            duration: 1000, 
+                                            status: 'passed' 
+                                        },
+                                        { 
+                                            errors: [{ message: 'Error 2' }],
+                                            startTime: '2023-01-01T00:00:00Z', 
+                                            duration: 1000, 
+                                            status: 'passed' 
+                                        }
+                                    ] 
+                                }
+                            ] 
+                        }
+                    ],
                 },
+                {
+                    title: 'Suite 1',
+                    file: 'suite1.js',
+                    specs: [
+                        { 
+                            title: 'Spec 1', 
+                            file: 'spec1.js', 
+                            tests: [
+                                { 
+                                    projectId: 'proj1', 
+                                    results: [
+                                        { 
+                                            startTime: '2023-01-01T00:00:00Z', 
+                                            duration: 1000, 
+                                            status: 'passed' 
+                                        },
+                                        { 
+                                            errors: [{ message: 'Error 2' }],
+                                            startTime: '2023-01-01T00:00:00Z', 
+                                            duration: 1000, 
+                                            status: 'passed' 
+                                        }
+                                    ] 
+                                }
+                            ] 
+                        }
+                    ],
+                },
+                {
+                    title: 'Suite 1',
+                    file: 'suite1.js',
+                    specs: [],
+                    suites: [
+                        {
+                            title: 'Suite 2',
+                            file: 'suite2.js',
+                            specs: [{ title: 'Spec 2', file: 'spec2.js' }],
+                        }
+                    ]
+                }
             ],
         };
         const result = parseJsonContent(projPath, data);
@@ -215,7 +304,18 @@ describe('parseJsonFile', () => {
         };
         expect(result).toEqual(expectedResults);
     });
+
+    test('should parse errot JSON file and return case results', () => {
+        const projPath = 'tests';
+        const jsonName = 'tests/errorResults.json';
+        const result = parseJsonFile(projPath, jsonName, []);
+        const expectedResults = {};
+        expect(result).toEqual(expectedResults);
+    });
+
+
 });
+
 
 describe('createTempDirectory', () => {
     test('should create a temporary directory', () => {
