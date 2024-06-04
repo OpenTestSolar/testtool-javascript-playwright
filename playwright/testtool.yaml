@@ -17,6 +17,7 @@ parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
     value: playwright额外参数
     desc: playwright命令行额外参数
     default: ""
+    inputWidget: text
 entry:
   load: "node /testtools/playwright/src/load.js $1"
   run: "node /testtools/playwright/src/run.js $1"
