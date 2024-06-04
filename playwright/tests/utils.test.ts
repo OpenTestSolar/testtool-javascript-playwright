@@ -282,8 +282,10 @@ describe('parseJsonContent', () => {
             ],
         };
         const result = parseJsonContent(projPath, data);
-        expect(result).toEqual({"tests/spec1.js?Suite 1 Spec 1": [{"content": "Error 2", "duration": 1, "endTime": 1672531201, "message": "", "projectID": "proj1", "result": "passed", "startTime": 1672531200},{
-            "content": "Error 2","duration": 1,"endTime": 1672560001,"message": "","projectID": "proj1","result": "passed","startTime": 1672560000,}]});
+        expect(result).toEqual({"tests/spec1.js?Suite 1 Spec 1": [{"content": "Error 2\
+        ", "duration": 1, "endTime": 1672531201, "message": "", "projectID": "proj1", "result": "passed", "startTime": 1672531200},{
+            "content": "Error 2\
+            ","duration": 1,"endTime": 1672531201,"message": "","projectID": "proj1","result": "passed","startTime": 1672531200,}], "tests/spec2.js?Suite 2 Spec 2": []});
     });
 });
 
