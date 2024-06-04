@@ -78,7 +78,7 @@ interface JsonData {
   errors: Error[];
 }
 
-interface SpecResult{
+interface SpecResult {
   projectID: string | null;
   result: string;
   duration: number;
@@ -186,7 +186,6 @@ export const isFileOrDirectory = (filePath: string) => {
   }
 };
 
-
 // 根据选择器过滤测试用例
 export const filterTestcases = async (
   testSelectors: string[],
@@ -202,7 +201,7 @@ export const filterTestcases = async (
     let matched = false;
 
     for (const selector of testSelectors) {
-      const fileType = isFileOrDirectory(selector)
+      const fileType = isFileOrDirectory(selector);
       if (fileType === -1) {
         // 如果selector是目录路径，检查testCase是否包含selector + '/' 避免文件名与用例名重复
         if (testCase.includes(selector + "/")) {
@@ -240,7 +239,11 @@ export const parseTestcase = (
   data.suites.forEach((suite: Suite) => {
     let casePath = (rootPath + "/" + suite.file).replace(`${projPath}/`, "");
     if (suite.suites) {
-      const cases = parseTestcase(projPath, { config: data.config, suites: suite.suites }, rootPath);
+      const cases = parseTestcase(
+        projPath,
+        { config: data.config, suites: suite.suites },
+        rootPath,
+      );
       testcases = testcases.concat(cases);
     } else {
       let desc = "";
@@ -253,7 +256,8 @@ export const parseTestcase = (
 
       suite.specs.forEach((spec: Spec) => {
         const caseName = spec.title;
-        const testcase = casePath + "?" + (desc ? `${desc} ${caseName}` : caseName);
+        const testcase =
+          casePath + "?" + (desc ? `${desc} ${caseName}` : caseName);
         testcases.push(encodeURI(testcase));
       });
     }
@@ -437,7 +441,7 @@ export function createTempDirectory(): string {
     return tempDirectory;
   } catch (error) {
     // 这里我们假设捕获的错误是 Error 类型的实例
-    const message = (error instanceof Error) ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error(`Failed to create temporary directory: ${message}`);
     throw error;
   }
@@ -496,7 +500,9 @@ export function groupTestCasesByPath(
   return groupedTestCases;
 }
 
-export function createTestResults(output: Record<string, SpecResult[]>): TestResult[] {
+export function createTestResults(
+  output: Record<string, SpecResult[]>,
+): TestResult[] {
   const testResults: TestResult[] = [];
 
   for (const [testCase, results] of Object.entries(output)) {
