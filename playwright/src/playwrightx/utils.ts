@@ -171,24 +171,21 @@ export function parseErrorCases(
 }
 
 // 判断路径是文件还是目录
-export const isFileOrDirectory = (path: string): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    fs.stat(path, (err, stats) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      if (stats.isFile()) {
-        resolve(1);
-      } else if (stats.isDirectory()) {
-        resolve(-1);
-      } else {
-        resolve(0);
-      }
-    });
-  });
+export const isFileOrDirectory = (filePath: string) => {
+  try {
+    const stats = fs.statSync(filePath);
+    if (stats.isFile()) {
+      return 1; // 文件
+    } else if (stats.isDirectory()) {
+      return -1; // 目录
+    } else {
+      return 0; // 其他类型
+    }
+  } catch (err) {
+    return 0; // 其他类型
+  }
 };
+
 
 // 根据选择器过滤测试用例
 export const filterTestcases = async (
@@ -205,11 +202,7 @@ export const filterTestcases = async (
     let matched = false;
 
     for (const selector of testSelectors) {
-      const fileType = await isFileOrDirectory(selector).catch((err) => {
-        console.error(err);
-        return 0;
-      });
-
+      const fileType = isFileOrDirectory(selector)
       if (fileType === -1) {
         // 如果selector是目录路径，检查testCase是否包含selector + '/' 避免文件名与用例名重复
         if (testCase.includes(selector + "/")) {

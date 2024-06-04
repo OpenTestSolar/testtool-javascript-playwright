@@ -42,10 +42,7 @@ export async function collectTestCases(
     const filePath = path.join(tempDirectory, "testSolarOutput.json");
 
     // 执行命令获取output.json文件内容
-    const fileType = await isFileOrDirectory(filePath).catch((err) => {
-      console.error(err);
-      return 0;
-    });
+    const fileType = isFileOrDirectory(filePath)
     if (fileType !== 1) {
       const command = `npx playwright test --list --reporter=json | tee ${filePath}`;
       console.log("Run Command: ", command);
