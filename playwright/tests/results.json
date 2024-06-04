@@ -1,0 +1,29 @@
+{
+  "config": {
+    "rootDir": "/project/tests"
+  },
+  "suites": [
+    {
+      "title": "Suite 1",
+      "file": "suite1.js",
+      "specs": [
+        {
+          "title": "Spec 1",
+          "file": "spec1.js",
+          "tests": [
+            {
+              "projectId": "proj1",
+              "results": [
+                {
+                  "startTime": "2023-01-01T00:00:00Z",
+                  "duration": 1000,
+                  "status": "passed"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
