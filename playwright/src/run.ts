@@ -28,7 +28,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
 
     const jsonName = path.replace(/\//g, "_") + ".json";
     process.env.PLAYWRIGHT_JSON_OUTPUT_NAME = jsonName;
-    process.env.PLAYWRIGHT_BROWSERS_PATH = "/tmp/playwright_ms_browser";
+    console.log("==--==--==--==-", process.env.PLAYWRIGHT_BROWSERS_PATH);
 
     const testResults = await executeCommands(
       projPath,
