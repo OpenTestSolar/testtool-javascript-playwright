@@ -10,12 +10,11 @@ echo ${TOOL_ROOT}
 
 cd ${TOOL_ROOT}
 
-npm install
+npm install pnpm -g
 
-npm install typescript
+pnpm install
+
+pnpm install typescript
 
 npx tsc
 
-# 安装浏览器
-npx playwright install-deps
-npx playwright install
