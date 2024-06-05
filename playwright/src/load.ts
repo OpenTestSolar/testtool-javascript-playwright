@@ -30,29 +30,18 @@ export async function collectTestCases(
     process.chdir(projPath);
     console.log(`Current directory: ${process.cwd()}`);
 
-    // 避免镜像中依赖目录被覆盖并且playwright版本不是最新，采用动态安装依赖和浏览器
-    const installCommand =
-      "npm cache clean --force && npm install -g pnpm && pnpm install @playwright/test  && pnpm install && pnpm list && npx playwright install";
-    console.log("Run Command: ", installCommand);
-    const { stdout, stderr } = await executeCommand(installCommand);
-    console.log("stdout:", stdout);
-    console.log("stderr:", stderr);
 
     const tempDirectory = createTempDirectory();
     const filePath = path.join(tempDirectory, "testSolarOutput.json");
 
     // 执行命令获取output.json文件内容
-    const fileType = isFileOrDirectory(filePath);
-    if (fileType !== 1) {
-      const command = `npx playwright test --list --reporter=json | tee ${filePath}`;
-      console.log("Run Command: ", command);
-      const { stdout, stderr } = await executeCommand(command);
-      console.log("stdout:", stdout);
-      console.log("stderr:", stderr);
-    }
+    const command = `npx playwright test --list --reporter=json | tee ${filePath}`;
+    console.log("Run Command: ", command);
+    const { stdout, stderr } = await executeCommand(command);
+    console.log("stdout:", stdout);
+    console.log("stderr:", stderr);
 
     //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
-
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const testData = JSON.parse(fileContent);
 

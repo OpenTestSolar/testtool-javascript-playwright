@@ -4,7 +4,7 @@ nameZh: Playwright自动化测试
 lang: javascript
 version: '0.1.0'
 defaultBaseImage: node:18
-langType: INTERPRETED
+langType: COMPILED
 description:  |-
   TestSolar Support For playwright
 homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
