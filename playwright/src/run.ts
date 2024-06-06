@@ -26,7 +26,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const { command, testIdentifiers } = generateCommands(path, testcases);
     // 执行命令，解析用例生成的 JSON 文件，上报结果
 
-    const jsonName = path.replace(/\//g, "_");
+    const jsonName = path.replace(/\//g, "_") + ".json";
     process.env.PLAYWRIGHT_JSON_OUTPUT_NAME = jsonName;
     console.log("==--==--==--==-", process.env.PLAYWRIGHT_BROWSERS_PATH);
 
