@@ -28,7 +28,6 @@ export async function runTestCase(runParamFile: string): Promise<void> {
 
     const jsonName = path.replace(/\//g, "_") + ".json";
     process.env.PLAYWRIGHT_JSON_OUTPUT_NAME = jsonName;
-    console.log("==--==--==--==-", process.env.PLAYWRIGHT_BROWSERS_PATH);
 
     const testResults = await executeCommands(
       projPath,
