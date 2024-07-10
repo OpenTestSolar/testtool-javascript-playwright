@@ -103,7 +103,7 @@ export async function loadTestCasesFromFile(filePath: string): Promise<void> {
     testSelectors,
   );
 
-  const reporter = new Reporter(taskId);
+  const reporter = new Reporter(taskId, data.FileReportPath);
   await reporter.reportLoadResult(loadResults);
 }
 
