@@ -21,8 +21,8 @@ dependencies:
     specifier: ^11.2.0
     version: 11.2.0
   testsolar-oss-sdk:
-    specifier: ^0.0.16
-    version: 0.0.16
+    specifier: ^0.0.17
+    version: 0.0.17
 
 devDependencies:
   '@eslint/js':
@@ -2903,8 +2903,8 @@ packages:
       minimatch: 3.1.2
     dev: true
 
-  /testsolar-oss-sdk@0.0.16:
-    resolution: {integrity: sha512-s6hVjXEKifWd7raPM1KgIZVF3q0PGsdJ0qbUhwqxIufIMy6R2ITAc0x2byUnG+tDJ7HE1d0uFtJe6zYXmzHvlA==}
+  /testsolar-oss-sdk@0.0.17:
+    resolution: {integrity: sha512-rCzHB00h49RIHOEfkig94Li90Fnnd8U32q0fuKHKUSY4V5jsni+LEE3FwXK2cTc1fkvyhlQff3U9q1tbSLlXcQ==}
     dependencies:
       class-transformer: 0.5.1
       crypto-js: 4.2.0
