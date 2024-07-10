@@ -36,7 +36,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     );
     // console.log("Parse json results:\n", testResults);
     const results = createTestResults(testResults);
-    const reporter = new Reporter(taskId);
+    const reporter = new Reporter(taskId, data.FileReportPath);
     for (const result of results) {
       await reporter.reportTestResult(result);
     }
