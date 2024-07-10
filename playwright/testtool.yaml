@@ -11,6 +11,7 @@ homePage: https://github.com/OpenTestSolar/testtool-javascript-playwright
 versionFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json
 indexFile: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/stable.index.json
 scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-playwright
+repository: https://github.com/OpenTestSolar/testtool-javascript-playwright
 gitPkgUrl: https://github.com/OpenTestSolar/testtool-javascript-playwright.git
 httpPkgUrl: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json@stable
 repository: https://github.com/OpenTestSolar/testtool-javascript-playwright/tree/main/playwright
