@@ -17,5 +17,5 @@ jobs:
           python-version: '3.11'
       - name: Validate metadata
         run: |
-          pip install solar-registry
+          pip install -U solar-registry
           solar-registry validate playwright
