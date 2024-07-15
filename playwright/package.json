@@ -1,6 +1,6 @@
 {
   "name": "testsolar-oss-playwright",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TestSolar support for playwright tool",
   "main": "main.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "fs-extra": "^11.2.0",
-    "testsolar-oss-sdk": "^0.0.17"
+    "testsolar-oss-sdk": "^0.0.18"
   },
   "devDependencies": {
     "@eslint/js": "^9.2.0",
