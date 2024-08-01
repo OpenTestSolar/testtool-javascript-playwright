@@ -1,3 +1,4 @@
+import * as process from "process";
 import { runTestCase } from "./playwrightx/executor";
 
 // 从命令行参数中获取文件路径
