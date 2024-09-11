@@ -18,7 +18,9 @@
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "fs-extra": "^11.2.0",
-    "testsolar-oss-sdk": "^0.0.18"
+    "loglevel": "^1.9.2",
+    "loglevel-plugin-prefix": "^0.8.4",
+    "testsolar-oss-sdk": "^0.0.19"
   },
   "devDependencies": {
     "@eslint/js": "^9.2.0",
