@@ -7,6 +7,7 @@ import * as path from "path";
 import { parseISO, addMilliseconds } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
 import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
+import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 import {
   TestResult,
   TestCaseStep,
@@ -97,7 +98,7 @@ export async function executeCommand(
     return { stdout, stderr };
   } catch (error) {
     const typedError = error as Error & { stdout: string; stderr: string }; // 类型断言
-    // console.error(
+    // log.error(
     //   `Error executing command: ${command}\nError stdout: ${typedError.stdout}\nError stderr: ${typedError.stderr}, please check testcase's log`,
     // );
     return {
@@ -279,7 +280,7 @@ export function generateCommands(
   // 检查 testCases 是否为空
   if (testCases.length === 0) {
     const defaultCommand = `npx playwright test --reporter=json ${extraArgs}`;
-    console.log(`Generated default command for test cases: ${defaultCommand}`);
+    log.info(`Generated default command for test cases: ${defaultCommand}`);
     return { command: defaultCommand, testIdentifiers: [] };
   }
 
@@ -293,7 +294,7 @@ export function generateCommands(
     testIdentifiers.push(`${path}?${testcase}`);
   }
 
-  console.log(`Generated command for test cases: ${command}`);
+  log.info(`Generated command for test cases: ${command}`);
   return { command, testIdentifiers };
 }
 
@@ -320,33 +321,33 @@ export function parseJsonContent(
   data: Data,
   rootDir: string | null = null,
 ): Record<string, SpecResult[]> {
-  console.log("开始解析 JSON 内容...");
+  log.info("开始解析 JSON 内容...");
   const rootPath = data.config.rootDir || rootDir;
-  console.log(`使用根路径: ${rootPath}`);
+  log.info(`使用根路径: ${rootPath}`);
   const caseResults: Record<string, SpecResult[]> = {};
 
   // 解析 suites 数组并处理用例结果
   const parseSuites = (suites: Suite[], currentRootPath: string | null) => {
-    console.log(`正在解析 suites。suites 数量: ${suites.length}`);
+    log.info(`正在解析 suites。suites 数量: ${suites.length}`);
     for (const suite of suites) {
       const desc = suite.title === suite.file ? "" : suite.title;
-      console.log(`正在处理 suite: ${suite.title}`);
+      log.info(`正在处理 suite: ${suite.title}`);
 
       if (suite.specs) {
-        console.log(`发现 specs。specs 数量: ${suite.specs.length}`);
+        log.info(`发现 specs。specs 数量: ${suite.specs.length}`);
         for (const spec of suite.specs) {
           const specTitle = spec.title;
-          console.log(`正在处理 spec: ${specTitle}`);
+          log.info(`正在处理 spec: ${specTitle}`);
           const specFile = handlePath(
             projPath,
             `${currentRootPath}/${spec.file}`,
           );
           const specName = `${specFile}?${desc ? desc + " " : ""}${specTitle}`;
-          console.log(`Spec 名称: ${specName}`);
+          log.info(`Spec 名称: ${specName}`);
           let specResult: SpecResult | null = null;
 
           if (spec.tests) {
-            console.log(`发现 tests。tests 数量: ${spec.tests.length}`);
+            log.info(`发现 tests。tests 数量: ${spec.tests.length}`);
             for (const test of spec.tests) {
               const results = test.results;
               const specProjectId = test.projectId;
@@ -359,7 +360,7 @@ export function parseJsonContent(
                 let specErrorCtx = "";
 
                 if (result.errors) {
-                  console.log(
+                  log.info(
                     `发现 errors。errors 数量: ${result.errors.length}`,
                   );
                   for (const error of result.errors) {
@@ -381,11 +382,11 @@ export function parseJsonContent(
           }
 
           if (!caseResults[specName]) {
-            console.log(`为 ${specName} 添加新的 spec 结果`);
+            log.info(`为 ${specName} 添加新的 spec 结果`);
             caseResults[specName] = specResult ? [specResult] : [];
           } else {
             if (specResult) {
-              console.log(`为 ${specName} 追加 spec 结果`);
+              log.info(`为 ${specName} 追加 spec 结果`);
               caseResults[specName].push(specResult);
             }
           }
@@ -393,7 +394,7 @@ export function parseJsonContent(
       }
 
       if (suite.suites) {
-        console.log(`正在处理 suite 的嵌套 suites: ${suite.title}`);
+        log.info(`正在处理 suite 的嵌套 suites: ${suite.title}`);
         parseSuites(suite.suites, currentRootPath);
       }
     }
@@ -401,7 +402,7 @@ export function parseJsonContent(
 
   parseSuites(data.suites, rootPath);
 
-  console.log("完成 JSON 内容解析。");
+  log.info("完成 JSON 内容解析。");
   return caseResults;
 }
 
@@ -411,22 +412,22 @@ export function parseJsonFile(
   jsonFile: string,
   cases: string[],
 ): Record<string, SpecResult[]> {
-  console.log(
+  log.info(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
   const data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
-  console.log("--------json data:---------");
-  console.log(JSON.stringify(data, null, 2));
-  console.log("---------------------------");
+  log.info("--------json data:---------");
+  log.info(JSON.stringify(data, null, 2));
+  log.info("---------------------------");
   const result = parseJsonContent(projPath, data);
 
-  console.log(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
+  log.info(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
   if (result && Object.keys(result).length > 0) {
     return result;
   } else {
     // 如果 result 为空，则调用 parseErrorCases 方法
     const testErrorResults = parseErrorCases(data, cases);
-    console.log(`Parse result from error info: ${testErrorResults}`);
+    log.info(`Parse result from error info: ${testErrorResults}`);
     return testErrorResults;
   }
 }
@@ -437,12 +438,12 @@ export function createTempDirectory(): string {
 
   try {
     fs.mkdirSync(tempDirectory);
-    console.log(`Temporary directory created: ${tempDirectory}`);
+    log.info(`Temporary directory created: ${tempDirectory}`);
     return tempDirectory;
   } catch (error) {
     // 这里我们假设捕获的错误是 Error 类型的实例
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Failed to create temporary directory: ${message}`);
+    log.error(`Failed to create temporary directory: ${message}`);
     throw error;
   }
 }
@@ -456,7 +457,7 @@ export async function executeCommands(
   const results: Record<string, SpecResult[]> = {};
 
   const { stdout, stderr } = await executeCommand(command);
-  console.log(
+  log.info(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
   // 解析 JSON 文件并处理结果
@@ -495,7 +496,7 @@ export function groupTestCasesByPath(
     groupedTestCases[path].push(name);
   });
 
-  console.log("Grouped test cases by path: ", groupedTestCases);
+  log.info("Grouped test cases by path: ", groupedTestCases);
 
   return groupedTestCases;
 }

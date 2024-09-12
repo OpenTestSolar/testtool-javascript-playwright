@@ -3,6 +3,7 @@ import * as process from "process";
 import * as fs from "fs";
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
+import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 
 import {
     executeCommands,
@@ -12,10 +13,10 @@ import {
 } from "./utils";
 
 export async function runTestCase(runParamFile: string): Promise<void> {
-    console.log("Pipe file: ", runParamFile);
+    log.info("Pipe file: ", runParamFile);
     const fileContent = fs.readFileSync(runParamFile, "utf-8");
     const data = JSON.parse(fileContent);
-    console.log(`Pipe file content:\n${JSON.stringify(data, null, 2)}`);
+    log.info(`Pipe file content:\n${JSON.stringify(data, null, 2)}`);
     const testSelectors = data.TestSelectors || [];
     const projPath = data.ProjectPath;
     const taskId = data.TaskId;
@@ -36,7 +37,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
             command,
             testIdentifiers,
         );
-        // console.log("Parse json results:\n", testResults);
+        // log.info("Parse json results:\n", testResults);
         const results = createTestResults(testResults);
         const reporter = new Reporter(taskId, data.FileReportPath);
         for (const result of results) {

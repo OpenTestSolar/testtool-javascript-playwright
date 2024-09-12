@@ -15,6 +15,7 @@ import {
   parseTimeStamp,
 } from "../src/playwrightx/utils";
 import * as path from "path";
+import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 
 describe("executeCommand", () => {
   test("should execute a command and return stdout and stderr", async () => {
@@ -70,35 +71,35 @@ describe("parseErrorCases", () => {
 
 describe("isFileOrDirectory", () => {
   test("should return 1 for file", async () => {
-    console.log("Testing file...");
+    log.info("Testing file...");
     const testFile = path.join(__dirname, "tests/sum.test.ts");
-    console.log("======Testing file:", testFile);
+    log.info("======Testing file:", testFile);
     const result = isFileOrDirectory(testFile);
-    console.log("File test complete.");
+    log.info("File test complete.");
     expect(result).toBe(0);
   }, 10000);
 
   test("should return -1 for directories", async () => {
-    console.log("Testing directory...");
+    log.info("Testing directory...");
     const testDir = path.join(__dirname, "..");
-    console.log("======Testing directory:", testDir);
+    log.info("======Testing directory:", testDir);
     const result = isFileOrDirectory(testDir);
-    console.log("Directory test complete.");
+    log.info("Directory test complete.");
     expect(result).toBe(-1);
   }, 10000);
 
   test("should r置超时时eturn 0 for neither file nor directory", async () => {
-    console.log("Testing unknown path...");
+    log.info("Testing unknown path...");
     const testUnknown = path.join(__dirname, "unknown");
     const result = isFileOrDirectory(testUnknown);
-    console.log("Unknown path test complete.");
+    log.info("Unknown path test complete.");
     expect(result).toBe(0);
   }, 10000);
 
   test("should reject for non-existent paths", async () => {
-    console.log("Testing non-existent path...");
+    log.info("Testing non-existent path...");
     expect(isFileOrDirectory("path/to/nonexistent"));
-    console.log("Non-existent path test complete.");
+    log.info("Non-existent path test complete.");
   }, 10000);
 });
 
