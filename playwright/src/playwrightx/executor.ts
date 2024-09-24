@@ -24,11 +24,9 @@ export async function runTestCase(runParamFile: string): Promise<void> {
   
     // 对每个文件生成命令行
     for (const [path, testcases] of Object.entries(caseLists)) {
-        const { command, testIdentifiers } = generateCommands(path, testcases);
         // 执行命令并解析用例生成的 JSON 文件
         const jsonName = path.replace(/\//g, "_") + ".json";
-        
-        // 使用局部变量而不是环境变量
+        const { command, testIdentifiers } = generateCommands(path, testcases, jsonName);
         const testResults = await executeCommands(
             projPath,
             command,

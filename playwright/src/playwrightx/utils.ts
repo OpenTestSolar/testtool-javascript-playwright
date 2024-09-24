@@ -271,6 +271,7 @@ export const parseTestcase = (
 export function generateCommands(
   path: string,
   testCases: string[],
+  jsonName: string,
 ): { command: string; testIdentifiers: string[] } {
   const testIdentifiers: string[] = [];
 
@@ -279,7 +280,7 @@ export function generateCommands(
 
   // 检查 testCases 是否为空
   if (testCases.length === 0) {
-    const defaultCommand = `npx playwright test --reporter=json ${extraArgs}`;
+    const defaultCommand = `npx playwright test --reporter=json ${extraArgs} > ${jsonName}`;
     log.info(`Generated default command for test cases: ${defaultCommand}`);
     return { command: defaultCommand, testIdentifiers: [] };
   }
@@ -288,7 +289,7 @@ export function generateCommands(
   if (grepPattern) {
     grepPattern = `--grep="${grepPattern}"`;
   }
-  const command = `npx playwright test ${path} ${grepPattern} --reporter=json ${extraArgs}`;
+  const command = `npx playwright test ${path} ${grepPattern} --reporter=json ${extraArgs} > ${jsonName}`;
 
   for (const testcase of testCases) {
     testIdentifiers.push(`${path}?${testcase}`);
