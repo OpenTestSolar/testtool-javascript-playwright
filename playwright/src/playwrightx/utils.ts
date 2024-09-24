@@ -453,6 +453,7 @@ export async function executeCommands(
   projPath: string,
   command: string,
   cases: string[],
+  jsonFile: string,  // 接收jsonFile作为参数
 ): Promise<Record<string, SpecResult[]>> {
   const results: Record<string, SpecResult[]> = {};
 
@@ -461,7 +462,6 @@ export async function executeCommands(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
   // 解析 JSON 文件并处理结果
-  const jsonFile = process.env.PLAYWRIGHT_JSON_OUTPUT_NAME || "result.json";
   const testResults = parseJsonFile(projPath, jsonFile, cases);
   Object.assign(results, testResults);
   return testResults;

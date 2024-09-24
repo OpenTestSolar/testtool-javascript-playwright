@@ -27,17 +27,17 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     // 对每个文件生成命令行
     for (const [path, testcases] of Object.entries(caseLists)) {
         const { command, testIdentifiers } = generateCommands(path, testcases);
-        // 执行命令，解析用例生成的 JSON 文件，上报结果
-    
+        // 执行命令并解析用例生成的 JSON 文件
         const jsonName = path.replace(/\//g, "_") + ".json";
-        process.env.PLAYWRIGHT_JSON_OUTPUT_NAME = jsonName;
-    
+        
+        // 使用局部变量而不是环境变量
         const testResults = await executeCommands(
             projPath,
             command,
             testIdentifiers,
+            jsonName,  // 将jsonName传递给executeCommands函数
         );
-        // log.info("Parse json results:\n", testResults);
+        
         const results = createTestResults(testResults);
         const reporter = new Reporter(taskId, data.FileReportPath);
         for (const result of results) {

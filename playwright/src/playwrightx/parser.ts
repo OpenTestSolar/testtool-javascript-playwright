@@ -31,12 +31,11 @@ export async function collectTestCases(
     process.chdir(projPath);
     log.info(`Current directory: ${process.cwd()}`);
 
-
     const tempDirectory = createTempDirectory();
     const filePath = path.join(tempDirectory, "testSolarOutput.json");
 
     // 执行命令获取output.json文件内容
-    const command = `npx playwright test --list --reporter=json | tee ${filePath}`;
+    const command = `npx playwright test --list --reporter=json > ${filePath}`;
     log.info("Run Command: ", command);
     const { stdout, stderr } = await executeCommand(command);
     log.info("stdout:", stdout);
@@ -77,6 +76,10 @@ export async function collectTestCases(
       const test = new TestCase(`${path}?${descAndName}`, {});
       result.Tests.push(test);
     });
+
+    // 将文件改名为load.json并移动到$TESTSOLAR_WORKSPACE/attachments目录下
+    const newFilePath = path.join(projPath, "attachments", "load.json");
+    fs.renameSync(filePath, newFilePath);
   } catch (error: unknown) {
     // 直接抛出异常并退出
     const errorMessage =
