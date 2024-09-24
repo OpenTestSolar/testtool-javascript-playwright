@@ -269,7 +269,7 @@ export const parseTestcase = (
 
 /// 生成运行测试用例的命令
 export function generateCommands(
-  path: string,
+  casePath: string,
   testCases: string[],
   jsonName: string,
 ): { command: string; testIdentifiers: string[] } {
@@ -289,10 +289,10 @@ export function generateCommands(
   if (grepPattern) {
     grepPattern = `--grep="${grepPattern}"`;
   }
-  const command = `npx playwright test ${path} ${grepPattern} --reporter=json ${extraArgs} > ${jsonName}`;
+  const command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${extraArgs} > ${jsonName}`;
 
   for (const testcase of testCases) {
-    testIdentifiers.push(`${path}?${testcase}`);
+    testIdentifiers.push(`${casePath}?${testcase}`);
   }
 
   log.info(`Generated command for test cases: ${command}`);
@@ -417,16 +417,6 @@ export function parseJsonFile(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
   const data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
-
-  // 将文件移动到$TESTSOLAR_WORKSPACE/attachments目录下
-  const newDirPath = path.join(projPath, "attachments");
-  if (!fs.existsSync(newDirPath)) {
-    fs.mkdirSync(newDirPath, { recursive: true });
-  }
-  const originalFileName = path.basename(jsonFile);
-  const newFilePath = path.join(newDirPath, originalFileName);
-  fs.renameSync(jsonFile, newFilePath);
-
   const result = parseJsonContent(projPath, data);
 
   log.info(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
