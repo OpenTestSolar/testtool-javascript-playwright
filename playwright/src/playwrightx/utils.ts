@@ -416,9 +416,16 @@ export function parseJsonFile(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
   const data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
-  log.info("--------json data:---------");
-  log.info(JSON.stringify(data, null, 2));
-  log.info("---------------------------");
+
+  // 将文件移动到$TESTSOLAR_WORKSPACE/attachments目录下
+  const newDirPath = path.join(projPath, "attachments");
+  if (!fs.existsSync(newDirPath)) {
+    fs.mkdirSync(newDirPath, { recursive: true });
+  }
+  const originalFileName = path.basename(jsonFile);
+  const newFilePath = path.join(newDirPath, originalFileName);
+  fs.renameSync(jsonFile, newFilePath);
+
   const result = parseJsonContent(projPath, data);
 
   log.info(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
