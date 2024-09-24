@@ -1,5 +1,3 @@
-
-import * as process from "process";
 import * as fs from "fs";
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
