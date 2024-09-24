@@ -2,7 +2,6 @@ import * as process from "process";
 import * as fs from "fs";
 import * as path from "path";
 import {
-  createTempDirectory,
   executeCommand,
   parseTestcase,
   filterTestcases,
