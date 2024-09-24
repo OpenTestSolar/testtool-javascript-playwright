@@ -78,7 +78,11 @@ export async function collectTestCases(
     });
 
     // 将文件改名为load.json并移动到$TESTSOLAR_WORKSPACE/attachments目录下
-    const newFilePath = path.join(projPath, "attachments", "load.json");
+    const newDirPath = path.join(projPath, "attachments");
+    if (!fs.existsSync(newDirPath)) {
+      fs.mkdirSync(newDirPath, { recursive: true });
+    }
+    const newFilePath = path.join(newDirPath, "load.json");
     fs.renameSync(filePath, newFilePath);
   } catch (error: unknown) {
     // 直接抛出异常并退出
