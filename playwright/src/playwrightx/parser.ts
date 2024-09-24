@@ -2,7 +2,6 @@ import * as process from "process";
 import * as fs from "fs";
 import * as path from "path";
 import {
-  createTempDirectory,
   executeCommand,
   parseTestcase,
   filterTestcases,
@@ -31,12 +30,15 @@ export async function collectTestCases(
     process.chdir(projPath);
     log.info(`Current directory: ${process.cwd()}`);
 
+    const newDirPath = path.join(projPath, "attachments");
+    if (!fs.existsSync(newDirPath)) {
+      fs.mkdirSync(newDirPath, { recursive: true });
+    }
+    const filePath = path.join(newDirPath, "load.json");
 
-    const tempDirectory = createTempDirectory();
-    const filePath = path.join(tempDirectory, "testSolarOutput.json");
 
     // 执行命令获取output.json文件内容
-    const command = `npx playwright test --list --reporter=json | tee ${filePath}`;
+    const command = `npx playwright test --list --reporter=json > ${filePath}`;
     log.info("Run Command: ", command);
     const { stdout, stderr } = await executeCommand(command);
     log.info("stdout:", stdout);

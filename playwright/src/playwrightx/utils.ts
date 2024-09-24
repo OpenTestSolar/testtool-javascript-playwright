@@ -269,8 +269,9 @@ export const parseTestcase = (
 
 /// 生成运行测试用例的命令
 export function generateCommands(
-  path: string,
+  casePath: string,
   testCases: string[],
+  jsonName: string,
 ): { command: string; testIdentifiers: string[] } {
   const testIdentifiers: string[] = [];
 
@@ -279,7 +280,7 @@ export function generateCommands(
 
   // 检查 testCases 是否为空
   if (testCases.length === 0) {
-    const defaultCommand = `npx playwright test --reporter=json ${extraArgs}`;
+    const defaultCommand = `npx playwright test --reporter=json ${extraArgs} > ${jsonName}`;
     log.info(`Generated default command for test cases: ${defaultCommand}`);
     return { command: defaultCommand, testIdentifiers: [] };
   }
@@ -288,10 +289,10 @@ export function generateCommands(
   if (grepPattern) {
     grepPattern = `--grep="${grepPattern}"`;
   }
-  const command = `npx playwright test ${path} ${grepPattern} --reporter=json ${extraArgs}`;
+  const command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${extraArgs} > ${jsonName}`;
 
   for (const testcase of testCases) {
-    testIdentifiers.push(`${path}?${testcase}`);
+    testIdentifiers.push(`${casePath}?${testcase}`);
   }
 
   log.info(`Generated command for test cases: ${command}`);
@@ -416,9 +417,6 @@ export function parseJsonFile(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
   const data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
-  log.info("--------json data:---------");
-  log.info(JSON.stringify(data, null, 2));
-  log.info("---------------------------");
   const result = parseJsonContent(projPath, data);
 
   log.info(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
@@ -453,6 +451,7 @@ export async function executeCommands(
   projPath: string,
   command: string,
   cases: string[],
+  jsonFile: string,  // 接收jsonFile作为参数
 ): Promise<Record<string, SpecResult[]>> {
   const results: Record<string, SpecResult[]> = {};
 
@@ -461,7 +460,6 @@ export async function executeCommands(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
   // 解析 JSON 文件并处理结果
-  const jsonFile = process.env.PLAYWRIGHT_JSON_OUTPUT_NAME || "result.json";
   const testResults = parseJsonFile(projPath, jsonFile, cases);
   Object.assign(results, testResults);
   return testResults;
