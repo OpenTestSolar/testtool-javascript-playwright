@@ -186,14 +186,14 @@ describe("generateCommands", () => {
   test("should generate test execution commands", () => {
     const path = "path/to/tests";
     const testCases = ["test1", "test2"];
-    const { command } = generateCommands(path, testCases);
+    const { command } = generateCommands(path, testCases, "1.json");
     expect(command).toContain("npx playwright test");
   });
 
   test("should generate zero test execution commands", () => {
     const path = "path/to/tests";
     const testCases: string[] = [];
-    const { command } = generateCommands(path, testCases);
+    const { command } = generateCommands(path, testCases, "1.json");
     expect(command).toContain("npx playwright test");
   });
 });
