@@ -39,7 +39,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
             projPath,
             command,
             testIdentifiers,
-            jsonName,  // 将jsonName传递给executeCommands函数
+            caseJsonFile,
         );
         
         const results = createTestResults(testResults);
