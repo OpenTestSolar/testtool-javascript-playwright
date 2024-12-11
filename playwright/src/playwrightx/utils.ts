@@ -554,6 +554,9 @@ export function createTestResults(
 
 export function getTestcasePrefix() {
   const testcasePrefix = process.env.TESTSOLAR_TTP_TESTCASE_PREFIX || "";
+  if (testcasePrefix === "") {
+    return "";
+  }
   const normalizedTestcasePrefix = testcasePrefix.endsWith('/') ? testcasePrefix : testcasePrefix + '/';
   return normalizedTestcasePrefix;
 }
