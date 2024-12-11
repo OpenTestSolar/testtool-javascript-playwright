@@ -401,12 +401,12 @@ describe("createTestResults", () => {
 
 describe('getTestcasePrefix', () => {
   test('should return normalized prefix with trailing slash from environment variable', () => {
-    process.env.TESTCASE_PREFIX = 'test-prefix/';
+    process.env.TESTSOLAR_TTP_TESTCASE_PREFIX = 'test-prefix/';
     expect(getTestcasePrefix()).toBe('test-prefix/');
   });
 
   test('should return normalized prefix with trailing slash if not provided in environment variable', () => {
-    process.env.TESTCASE_PREFIX = 'test-prefix';
+    process.env.TESTSOLAR_TTP_TESTCASE_PREFIX = 'test-prefix';
     expect(getTestcasePrefix()).toBe('test-prefix/');
   });
 
