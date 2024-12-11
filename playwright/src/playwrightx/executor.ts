@@ -9,6 +9,7 @@ import {
     createTestResults,
     generateCommands,
     groupTestCasesByPath,
+    getTestcasePrefix
 } from "./utils";
 
 export async function runTestCase(runParamFile: string): Promise<void> {
@@ -20,8 +21,25 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const projPath = data.ProjectPath;
     const taskId = data.TaskId;
   
+    const testcasePrefix = getTestcasePrefix();
+
+    // 新的 selector 列表
+    let newSelectors: string[] = [];
+
+    // 遍历 testSelectors
+    testSelectors.forEach((selector: string) => {
+        if (testcasePrefix && selector) {
+            // 去掉前缀
+            const newSelector = selector.replace(new RegExp(`^${testcasePrefix}`), "");
+            newSelectors.push(newSelector);
+        } else {
+            // 如果前缀为空或 selector 为空，直接添加到新的列表中
+            newSelectors.push(selector);
+        }
+    });
+
     // 按照文件对用例进行分组
-    const caseLists = groupTestCasesByPath(testSelectors);
+    const caseLists = groupTestCasesByPath(newSelectors);
   
     // 创建附件目录
     const attachmentsPath = path.join(projPath, "attachments");

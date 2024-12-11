@@ -5,6 +5,7 @@ import {
   executeCommand,
   parseTestcase,
   filterTestcases,
+  getTestcasePrefix
 } from "./utils";
 
 import {
@@ -73,10 +74,12 @@ export async function collectTestCases(
     }
     log.info("filter testcases: ", filterResult);
 
+    const testcasePrefix = getTestcasePrefix();
+
     // 提取用例数据
     filterResult.forEach((filteredTestCase: string) => {
       const [path, descAndName] = filteredTestCase.split("?");
-      const test = new TestCase(`${path}?${descAndName}`, {});
+      const test = new TestCase(`${testcasePrefix}${path}?${descAndName}`, {});
       result.Tests.push(test);
     });
   } catch (error: unknown) {
