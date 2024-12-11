@@ -1,4 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
+import * as process from "process";
 import {
   executeCommand,
   isFileOrDirectory,
@@ -13,6 +14,7 @@ import {
   parseErrorCases,
   handlePath,
   parseTimeStamp,
+  getTestcasePrefix
 } from "../src/playwrightx/utils";
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
@@ -394,4 +396,18 @@ describe("createTestResults", () => {
     const testResults = createTestResults(output);
     expect(testResults).toEqual(expect.arrayContaining([expect.any(Object)]));
   });
+});
+
+
+describe('getTestcasePrefix', () => {
+  test('should return normalized prefix with trailing slash from environment variable', () => {
+    process.env.TESTSOLAR_TTP_TESTCASE_PREFIX = 'test-prefix/';
+    expect(getTestcasePrefix()).toBe('test-prefix/');
+  });
+
+  test('should return normalized prefix with trailing slash if not provided in environment variable', () => {
+    process.env.TESTSOLAR_TTP_TESTCASE_PREFIX = 'test-prefix';
+    expect(getTestcasePrefix()).toBe('test-prefix/');
+  });
+
 });

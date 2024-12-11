@@ -2,7 +2,7 @@ schemaVersion: 1.0
 name: playwright
 nameZh: Playwright自动化测试
 lang: javascript
-version: '0.2.4'
+version: '0.2.7'
 defaultBaseImage: node:18
 langType: INTERPRETED
 description:  |-
@@ -19,6 +19,11 @@ parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
   - name: extraArgs
     value: playwright额外参数
     desc: playwright命令行额外参数
+    default: ""
+    inputWidget: text
+  - name: testcase_prefix
+    value: 用例前缀
+    desc: playwright用例前缀信息
     default: ""
     inputWidget: text
 entry:

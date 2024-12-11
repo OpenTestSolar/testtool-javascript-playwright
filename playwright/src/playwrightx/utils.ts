@@ -503,10 +503,10 @@ export function createTestResults(
   output: Record<string, SpecResult[]>,
 ): TestResult[] {
   const testResults: TestResult[] = [];
-
+  const casePrefix = getTestcasePrefix();
   for (const [testCase, results] of Object.entries(output)) {
     for (const result of results) {
-      const test = new TestCase(encodeURI(testCase), {}); // 假设 TestCase 构造函数接受路径和空记录
+      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {}); // 假设 TestCase 构造函数接受路径和空记录
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
       const resultType =
@@ -549,4 +549,11 @@ export function createTestResults(
   }
 
   return testResults;
+}
+
+
+export function getTestcasePrefix() {
+  const testcasePrefix = process.env.TESTSOLAR_TTP_TESTCASE_PREFIX || "";
+  const normalizedTestcasePrefix = testcasePrefix.endsWith('/') ? testcasePrefix : testcasePrefix + '/';
+  return normalizedTestcasePrefix;
 }
