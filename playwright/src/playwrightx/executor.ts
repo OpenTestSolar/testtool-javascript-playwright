@@ -24,7 +24,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const testcasePrefix = getTestcasePrefix();
 
     // 新的 selector 列表
-    let newSelectors: string[] = [];
+    const newSelectors: string[] = [];
 
     // 遍历 testSelectors
     testSelectors.forEach((selector: string) => {

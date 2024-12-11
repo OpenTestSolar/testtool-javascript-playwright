@@ -212,7 +212,7 @@ describe("parseTimeStamp", () => {
     const startTime = "2023-01-01T00:00:00Z";
     const duration = 1000;
     const result = parseTimeStamp(startTime, duration);
-    expect(result).toEqual([1672531200, 1672531201, 1]);
+    expect(result).toEqual([1672560000, 1672560001, 1]);
   });
 });
 
@@ -298,20 +298,20 @@ describe("parseJsonContent", () => {
         {
           content: "Error 2\n",
           duration: 1,
-          endTime: 1672531201,
+          endTime: 1672560001,
           message: "",
           projectID: "proj1",
           result: "passed",
-          startTime: 1672531200,
+          startTime: 1672560000,
         },
         {
           content: "Error 2\n",
           duration: 1,
-          endTime: 1672531201,
+          endTime: 1672560001,
           message: "",
           projectID: "proj1",
           result: "passed",
-          startTime: 1672531200,
+          startTime: 1672560000,
         },
       ],
       "tests/spec2.js?Suite 2 Spec 2": [],
@@ -330,8 +330,8 @@ describe("parseJsonFile", () => {
           projectID: "proj1",
           result: "passed",
           duration: 1,
-          startTime: 1672531200,
-          endTime: 1672531201,
+          startTime: 1672560000,
+          endTime: 1672560001,
           message: "",
           content: "",
         },
