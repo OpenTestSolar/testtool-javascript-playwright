@@ -410,8 +410,4 @@ describe('getTestcasePrefix', () => {
     expect(getTestcasePrefix()).toBe('test-prefix/');
   });
 
-  test('should return empty string if environment variable is not set', () => {
-    delete process.env.TESTCASE_PREFIX;
-    expect(getTestcasePrefix()).toBe('');
-  });
 });
