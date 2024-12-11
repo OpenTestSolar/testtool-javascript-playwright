@@ -74,7 +74,7 @@ export async function collectTestCases(
     }
     log.info("filter testcases: ", filterResult);
 
-    const testcasePrefix = "";
+    const testcasePrefix = getTestcasePrefix();
 
     // 提取用例数据
     filterResult.forEach((filteredTestCase: string) => {
