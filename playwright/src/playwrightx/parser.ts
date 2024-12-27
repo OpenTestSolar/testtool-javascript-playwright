@@ -79,7 +79,7 @@ export async function collectTestCases(
     // 提取用例数据
     filterResult.forEach((filteredTestCase: string) => {
       const [path, descAndName] = filteredTestCase.split("?");
-      const test = new TestCase(`${testcasePrefix}${path}?${descAndName}`, {});
+      const test = new TestCase(`${testcasePrefix}${path}?${descAndName}`, {"name": "ambzhang"});
       result.Tests.push(test);
     });
   } catch (error: unknown) {
