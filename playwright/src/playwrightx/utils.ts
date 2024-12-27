@@ -30,7 +30,13 @@ interface Result {
   errors?: ResultError[];
 }
 
+interface Annotations {
+  owner: string;
+  description: string;
+}
+
 interface Test {
+  annotations: Annotations[] | null;
   projectId: string;
   results: Result[];
 }
@@ -87,6 +93,8 @@ interface SpecResult {
   endTime: number;
   message: string;
   content: string;
+  owner: string | null;
+  description: string | null;
 }
 
 // 执行命令并返回结果
@@ -142,6 +150,8 @@ export function parseErrorCases(
           endTime: specEndTime, // 计算结束时间
           message: errorMessage,
           content: `${errorStack}\nLocation: ${errorLocation}\nSnippet:\n${errorSnippet}`,
+          owner: null, // 根据实际情况设置或从 error 对象中获取
+          description: null, // 根据实际情况设置或从 error 对象中获取
         };
 
         // 遍历 cases，为每个 case 添加错误信息
@@ -162,6 +172,8 @@ export function parseErrorCases(
             endTime: specEndTime,
             message: message,
             content: message,
+            owner: null,
+            description: null,
           },
         ];
       }
@@ -350,6 +362,20 @@ export function parseJsonContent(
           if (spec.tests) {
             log.info(`发现 tests。tests 数量: ${spec.tests.length}`);
             for (const test of spec.tests) {
+              let owner: string | null = null;
+              let description: string | null = null;
+
+              if (test.annotations) {
+                for (const annotation of test.annotations) {
+                  if (annotation.owner) {
+                    owner = annotation.owner;
+                  }
+                  if (annotation.description) {
+                    description = annotation.description;
+                  }
+                }
+              }
+
               const results = test.results;
               const specProjectId = test.projectId;
               for (const result of results) {
@@ -377,6 +403,8 @@ export function parseJsonContent(
                   endTime: specEndTime,
                   message: specErrorMsg,
                   content: specErrorCtx,
+                  owner: owner,
+                  description: description,
                 };
               }
             }
@@ -506,7 +534,7 @@ export function createTestResults(
   const casePrefix = getTestcasePrefix();
   for (const [testCase, results] of Object.entries(output)) {
     for (const result of results) {
-      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {}); // 假设 TestCase 构造函数接受路径和空记录
+      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {"owner": result.owner || "", "description": result.description || ""}); // 假设 TestCase 构造函数接受路径和空记录
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
       const resultType =
