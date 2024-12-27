@@ -233,6 +233,12 @@ describe("parseJsonContent", () => {
               file: "spec1.js",
               tests: [
                 {
+                  annotations: [
+                    {
+                      owner:"amb",
+                      description: "desc"
+                    }
+                  ],
                   projectId: "proj1",
                   results: [
                     {
@@ -261,6 +267,7 @@ describe("parseJsonContent", () => {
               file: "spec1.js",
               tests: [
                 {
+                  annotations: [],
                   projectId: "proj1",
                   results: [
                     {
@@ -298,6 +305,8 @@ describe("parseJsonContent", () => {
     expect(result).toEqual({
       "tests/spec1.js?Suite 1 Spec 1": [
         {
+          description: "desc",
+          owner: "amb",
           content: "Error 2\n",
           duration: 1,
           endTime: 1672531201,
@@ -307,6 +316,8 @@ describe("parseJsonContent", () => {
           startTime: 1672531200,
         },
         {
+          description: null,
+          owner: null,
           content: "Error 2\n",
           duration: 1,
           endTime: 1672531201,
@@ -333,6 +344,8 @@ describe("parseJsonFile", () => {
           result: "passed",
           duration: 1,
           startTime: 1672531200,
+          description: null,
+          owner: null,
           endTime: 1672531201,
           message: "",
           content: "",
@@ -390,6 +403,8 @@ describe("createTestResults", () => {
           endTime: 1610000010000,
           message: "Test passed",
           content: "Test passed",
+          owner: "amb",
+          description: "desc"
         },
       ],
     };

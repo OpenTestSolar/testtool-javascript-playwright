@@ -36,7 +36,7 @@ interface Annotations {
 }
 
 interface Test {
-  annotations: Annotations[];
+  annotations: Annotations[] | null;
   projectId: string;
   results: Result[];
 }
