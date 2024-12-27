@@ -2,7 +2,7 @@ schemaVersion: 1.0
 name: playwright
 nameZh: Playwright自动化测试
 lang: javascript
-version: '0.2.8'
+version: '0.2.9'
 defaultBaseImage: node:18
 langType: INTERPRETED
 description:  |-
