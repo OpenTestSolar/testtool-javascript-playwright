@@ -506,7 +506,7 @@ export function createTestResults(
   const casePrefix = getTestcasePrefix();
   for (const [testCase, results] of Object.entries(output)) {
     for (const result of results) {
-      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {}); // 假设 TestCase 构造函数接受路径和空记录
+      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {"name": "zasd"}); // 假设 TestCase 构造函数接受路径和空记录
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
       const resultType =
