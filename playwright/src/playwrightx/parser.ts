@@ -20,8 +20,6 @@ import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
 // 定义JSON数据的类型接口
 interface PlaywrightReport {
-  config: any;
-  suites: any[];
   errors: Array<{
     message: string;
     stack: string;
