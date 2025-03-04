@@ -15,10 +15,10 @@ import {
   parseErrorCases,
   handlePath,
   parseTimeStamp,
-  getTestcasePrefix
+  getTestcasePrefix,
+  parsePlaywrightReport,
 } from "../src/playwrightx/utils";
 
-import { parsePlaywrightReport } from "../src/playwrightx/parser";
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 
