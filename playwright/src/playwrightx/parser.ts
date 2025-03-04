@@ -5,7 +5,8 @@ import {
   executeCommand,
   parseTestcase,
   filterTestcases,
-  getTestcasePrefix
+  getTestcasePrefix,
+  parsePlaywrightReport,
 } from "./utils";
 
 import {
@@ -52,6 +53,12 @@ export async function collectTestCases(
     // 解析所有用例
     const loadCaseResult = parseTestcase(projPath, testData);
     log.info("PlayWright testtool parse all testcases: \n", loadCaseResult);
+
+    // 如果用例为空，则通过解析json来获取错误信息
+    if (loadCaseResult.length === 0) {
+      const errors = parsePlaywrightReport(fileContent);
+      result.LoadErrors.push(...errors); // 使用LoadResult中定义的属性名
+    }
 
     // 过滤用例
     let filterResult;
@@ -113,3 +120,4 @@ export async function loadTestCasesFromFile(filePath: string): Promise<void> {
   const reporter = new Reporter(taskId, data.FileReportPath);
   await reporter.reportLoadResult(loadResults);
 }
+
