@@ -1,5 +1,6 @@
 import { describe, expect, test } from "@jest/globals";
 import * as process from "process";
+import * as fs from "fs";
 import {
   executeCommand,
   isFileOrDirectory,
@@ -16,8 +17,24 @@ import {
   parseTimeStamp,
   getTestcasePrefix
 } from "../src/playwrightx/utils";
+
+import { parsePlaywrightReport } from "../src/playwrightx/parser";
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
+
+
+describe("parsePlaywrightReport", () => {  // 更改为与测试函数名称一致
+  test("should parse error JSON file and return case results", () => {  // 修正拼写错误
+    const jsonName = "tests/load_error.json";
+    const fileContent = fs.readFileSync(jsonName, "utf-8");
+    const result = parsePlaywrightReport(fileContent);
+    
+    // 改为一个真实的期望值，而不是空对象
+    // 假设解析错误的JSON应该返回一个LoadError数组
+    expect(Array.isArray(result)).toBeTruthy();
+  });
+});
+
 
 describe("executeCommand", () => {
   test("should execute a command and return stdout and stderr", async () => {

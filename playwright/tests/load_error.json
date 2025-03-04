@@ -1,0 +1,78 @@
+{
+    "config": {
+      "configFile": "/data/workspace/playwright.config.ts",
+      "rootDir": "/data/workspace/tests",
+      "forbidOnly": false,
+      "fullyParallel": true,
+      "globalSetup": null,
+      "globalTeardown": null,
+      "globalTimeout": 0,
+      "grep": {},
+      "grepInvert": null,
+      "maxFailures": 0,
+      "metadata": {},
+      "preserveOutput": "always",
+      "reporter": [
+        [
+          "json"
+        ]
+      ],
+      "reportSlowTests": {
+        "max": 5,
+        "threshold": 15000
+      },
+      "quiet": false,
+      "projects": [
+        {
+          "outputDir": "/data/workspace/test-results",
+          "repeatEach": 1,
+          "retries": 0,
+          "metadata": {},
+          "id": "chromium",
+          "name": "chromium",
+          "testDir": "/data/workspace/tests",
+          "testIgnore": [],
+          "testMatch": [
+            "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+          ],
+          "timeout": 600000
+        }
+      ],
+      "shard": null,
+      "updateSnapshots": "missing",
+      "version": "1.49.1",
+      "workers": 8,
+      "webServer": null
+    },
+    "suites": [],
+    "errors": [
+      {
+        "message": "Error: require() of ES Module /data/workspace/node_modules/lighthouse/core/index.js from /data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts not supported.\nInstead change the require of index.js in /data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts to a dynamic import() which is available in all CommonJS modules.",
+        "stack": "Error: require() of ES Module /data/workspace/node_modules/lighthouse/core/index.js from /data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts not supported.\nInstead change the require of index.js in /data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts to a dynamic import() which is available in all CommonJS modules.\n    at Object.<anonymous> (/data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts:5:42)",
+        "location": {
+          "file": "/data/workspace/tests/demo/piaoyun_demo_ybp.spec.ts",
+          "column": 42,
+          "line": 5
+        },
+        "snippet": "\u001b[90m   at \u001b[39mdemo/piaoyun_demo_ybp.spec.ts:5\n\n\u001b[0m \u001b[90m 3 |\u001b[39m \u001b[36mimport\u001b[39m { \u001b[33mApplyPage\u001b[39m } \u001b[36mfrom\u001b[39m \u001b[32m'../approval-system/class/applyPage'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 4 |\u001b[39m \u001b[36mimport\u001b[39m lighthouse \u001b[36mfrom\u001b[39m \u001b[32m'lighthouse'\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 5 |\u001b[39m \u001b[36mimport\u001b[39m { launch } \u001b[36mfrom\u001b[39m \u001b[32m'chrome-launcher'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m                                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 6 |\u001b[39m \u001b[36mimport\u001b[39m \u001b[33m*\u001b[39m \u001b[36mas\u001b[39m fs \u001b[36mfrom\u001b[39m \u001b[32m'fs'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 7 |\u001b[39m \u001b[90m// 加载 Lighthouse 的 desktop-config.js\u001b[39m\n \u001b[90m 8 |\u001b[39m \u001b[36mimport\u001b[39m desktopConfig \u001b[36mfrom\u001b[39m \u001b[32m'lighthouse/core/config/desktop-config.js'\u001b[39m\u001b[33m;\u001b[39m\u001b[0m"
+      },
+      {
+        "message": "Error: require() of ES Module /data/workspace/node_modules/lighthouse/core/index.js from /data/workspace/tests/performance/testing_bi_detail_performance.spec.ts not supported.\nInstead change the require of index.js in /data/workspace/tests/performance/testing_bi_detail_performance.spec.ts to a dynamic import() which is available in all CommonJS modules.",
+        "stack": "Error: require() of ES Module /data/workspace/node_modules/lighthouse/core/index.js from /data/workspace/tests/performance/testing_bi_detail_performance.spec.ts not supported.\nInstead change the require of index.js in /data/workspace/tests/performance/testing_bi_detail_performance.spec.ts to a dynamic import() which is available in all CommonJS modules.\n    at Object.<anonymous> (/data/workspace/tests/performance/testing_bi_detail_performance.spec.ts:9:42)",
+        "location": {
+          "file": "/data/workspace/tests/performance/testing_bi_detail_performance.spec.ts",
+          "column": 42,
+          "line": 9
+        },
+        "snippet": "\u001b[90m   at \u001b[39mperformance/testing_bi_detail_performance.spec.ts:9\n\n\u001b[0m \u001b[90m  7 |\u001b[39m \u001b[36mimport\u001b[39m { test\u001b[33m,\u001b[39m expect\u001b[33m,\u001b[39m chromium } \u001b[36mfrom\u001b[39m \u001b[32m'@playwright/test'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m  8 |\u001b[39m \u001b[36mimport\u001b[39m { \u001b[33mApprovalDetailPage\u001b[39m } \u001b[36mfrom\u001b[39m \u001b[32m'../approval-system/class/approvalDetailPage'\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  9 |\u001b[39m \u001b[36mimport\u001b[39m { \u001b[33mApplyPage\u001b[39m } \u001b[36mfrom\u001b[39m \u001b[32m'../approval-system/class/applyPage'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 10 |\u001b[39m \u001b[36mimport\u001b[39m lighthouse \u001b[36mfrom\u001b[39m \u001b[32m'lighthouse'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 11 |\u001b[39m \u001b[36mimport\u001b[39m { launch } \u001b[36mfrom\u001b[39m \u001b[32m'chrome-launcher'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 12 |\u001b[39m \u001b[36mimport\u001b[39m \u001b[33m*\u001b[39m \u001b[36mas\u001b[39m fs \u001b[36mfrom\u001b[39m \u001b[32m'fs'\u001b[39m\u001b[33m;\u001b[39m\u001b[0m"
+      }
+    ],
+    "stats": {
+      "startTime": "2025-03-04T07:22:09.125Z",
+      "duration": 143.83900000000006,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  }
