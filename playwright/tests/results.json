@@ -17,7 +17,30 @@
                 {
                   "startTime": "2023-01-01T00:00:00Z",
                   "duration": 1000,
-                  "status": "passed"
+                  "status": "passed",
+                  "stdout": [
+                    {
+                      "text": "增加日志展示\n"
+                    },
+                    {
+                      "text": "进入百度页面\n"
+                    },
+                    {
+                      "text": "点击输入框\n"
+                    },
+                    {
+                      "text": "输入playwright\n"
+                    },
+                    {
+                      "text": "点击百度一下\n"
+                    },
+                    {
+                      "text": "等待弹出页面\n"
+                    },
+                    {
+                      "text": "点击百度翻译\n"
+                    }
+                  ],
                 }
               ]
             }
