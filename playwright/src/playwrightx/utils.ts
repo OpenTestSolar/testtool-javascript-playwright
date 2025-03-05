@@ -26,12 +26,18 @@ interface ResultError {
   message: string;
 }
 
+interface OutInfo {
+  text: string
+}
+
 interface Result {
   startTime: string;
   duration: number;
   status: string;
   error?: ResultError;
   errors?: ResultError[];
+  stdout?: OutInfo[];
+  stderr?: OutInfo[];
 }
 
 interface Annotations {
@@ -412,49 +418,68 @@ export function parseJsonContent(
                 const specErrorMsg = result.error ? result.error.message : "";
                 let specErrorCtx = "";
 
+                // 处理标准输出信息，将其添加到content中
+                if (result.stdout && result.stdout.length > 0) {
+                  log.info(`发现 stdout。stdout 数量: ${result.stdout.length}`);
+                  specErrorCtx += "\n==== 标准输出 ====\n";
+                  for (const output of result.stdout) {
+                    specErrorCtx += output.text;
+                  }
+                }
+
+                // 处理标准错误输出信息，也添加到content中
+                if (result.stderr && result.stderr.length > 0) {
+                  log.info(`发现 stderr。stderr 数量: ${result.stderr.length}`);
+                  specErrorCtx += "\n==== 标准错误输出 ====\n";
+                  for (const errOutput of result.stderr) {
+                    specErrorCtx += errOutput.text;
+                  }
+                }
+
+                // 处理错误信息
                 if (result.errors) {
                   log.info(
                     `发现 errors。errors 数量: ${result.errors.length}`,
                   );
+                  specErrorCtx += "\n==== 错误信息 ====\n";
                   for (const error of result.errors) {
                     specErrorCtx += error.message + "\n";
                   }
-                }
 
-                specResult = {
-                  projectID: specProjectId,
-                  result: result.status,
-                  duration: duration,
-                  startTime: specStartTime,
-                  endTime: specEndTime,
-                  message: specErrorMsg,
-                  content: specErrorCtx,
-                  owner: owner,
-                  description: description,
-                };
+                  specResult = {
+                    projectID: specProjectId,
+                    result: result.status,
+                    duration: duration,
+                    startTime: specStartTime,
+                    endTime: specEndTime,
+                    message: specErrorMsg,
+                    content: specErrorCtx, // 现在包含错误、stdout和stderr
+                    owner: owner,
+                    description: description,
+                  };
+                }
+              }
+            }
+
+            if (!caseResults[specName]) {
+              log.info(`为 ${specName} 添加新的 spec 结果`);
+              caseResults[specName] = specResult ? [specResult] : [];
+            } else {
+              if (specResult) {
+                log.info(`为 ${specName} 追加 spec 结果`);
+                caseResults[specName].push(specResult);
               }
             }
           }
+        }
 
-          if (!caseResults[specName]) {
-            log.info(`为 ${specName} 添加新的 spec 结果`);
-            caseResults[specName] = specResult ? [specResult] : [];
-          } else {
-            if (specResult) {
-              log.info(`为 ${specName} 追加 spec 结果`);
-              caseResults[specName].push(specResult);
-            }
-          }
+        if (suite.suites) {
+          log.info(`正在处理 suite 的嵌套 suites: ${suite.title}`);
+          parseSuites(suite.suites, currentRootPath);
         }
       }
-
-      if (suite.suites) {
-        log.info(`正在处理 suite 的嵌套 suites: ${suite.title}`);
-        parseSuites(suite.suites, currentRootPath);
-      }
-    }
-  };
-
+    };
+  }
   parseSuites(data.suites, rootPath);
 
   log.info("完成 JSON 内容解析。");
@@ -560,7 +585,7 @@ export function createTestResults(
   const casePrefix = getTestcasePrefix();
   for (const [testCase, results] of Object.entries(output)) {
     for (const result of results) {
-      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), {"owner": result.owner || "", "description": result.description || ""}); // 假设 TestCase 构造函数接受路径和空记录
+      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), { "owner": result.owner || "", "description": result.description || "" }); // 假设 TestCase 构造函数接受路径和空记录
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
       const resultType =
@@ -620,33 +645,33 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
   try {
     const report = JSON.parse(jsonData) as PlaywrightReport;
     const loadErrors: LoadError[] = [];
-    
+
     // 处理错误信息
     if (report.errors.length > 0) {
       report.errors.forEach((error) => {
         const errorMessage = error.message.split('\n')[0];
         let solution = "";
-        
+
         // 提取建议的解决方案
         if (error.message.includes('Instead change')) {
           solution = error.message.split('\n')[1].trim();
         }
-        
+
         // 创建错误名称和完整消息
         const errorName = `${error.location.file}:${error.location.line}:${error.location.column}`;
-        const fullErrorMessage = solution 
-          ? `${errorMessage}\n解决方案: ${solution}` 
+        const fullErrorMessage = solution
+          ? `${errorMessage}\n解决方案: ${solution}`
           : errorMessage;
-        
+
         const loadError = new LoadError(
           errorName,       // Name属性
           fullErrorMessage // Message属性
         );
-        
+
         loadErrors.push(loadError);
       });
     }
-    
+
     // 如果没有测试运行，添加一个通用错误
     if (report.stats.expected === 0 && report.errors.length > 0) {
       loadErrors.push(
@@ -656,16 +681,16 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
         )
       );
     }
-    
+
     return loadErrors;
-    
+
   } catch (e) {
     // 解析JSON失败时返回一个错误
     const parseError = new LoadError(
       "playwright-json-parse-error",
       `解析JSON数据失败: ${e instanceof Error ? e.message : String(e)}`
     );
-    
+
     return [parseError];
   }
 }
