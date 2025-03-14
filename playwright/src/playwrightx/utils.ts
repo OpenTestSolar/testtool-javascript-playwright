@@ -451,7 +451,9 @@ export function parseJsonContent(
                   log.info(
                     `发现 errors。errors 数量: ${result.errors.length}`,
                   );
-                  specErrorCtx += "\n==== 错误信息 ====\n";
+                  if (result.status !== "passed") {
+                    specErrorCtx += "\n==== 错误信息 ====\n";
+                  }
                   for (const error of result.errors) {
                     specErrorCtx += error.message + "\n";
                   }
