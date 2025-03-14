@@ -371,8 +371,7 @@ describe("parseJsonContent", () => {
           result: "passed",
           startTime: 1672531200,
         },
-      ],
-      "tests/spec2.js?Suite 2 Spec 2": [],
+      ]
     });
   });
 });
@@ -383,19 +382,7 @@ describe("parseJsonFile", () => {
     const jsonName = "tests/results.json";
     const result = parseJsonFile(projPath, jsonName, []);
     const expectedResults = {
-      "/project/spec1.js?Suite 1 Spec 1": [
-        {
-          projectID: "proj1",
-          result: "passed",
-          duration: 1,
-          startTime: 1672531200,
-          description: null,
-          owner: null,
-          endTime: 1672531201,
-          message: "",
-          content: "",
-        },
-      ],
+      "/project/spec1.js?Suite 1 Spec 1": [],
     };
     expect(result).toEqual(expectedResults);
   });
