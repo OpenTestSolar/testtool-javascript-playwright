@@ -21,6 +21,7 @@ import {
 
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
+import { Attachment, AttachmentType } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
 
 describe("parsePlaywrightReport", () => {  // 更改为与测试函数名称一致
@@ -291,12 +292,26 @@ describe("parseJsonContent", () => {
                       startTime: "2023-01-01T00:00:00Z",
                       duration: 1000,
                       status: "passed",
+                      attachments: [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/root/work/123test/js_project/test-results/test-1-test-chromium/test-failed-1.png"
+                        }
+                      ]
                     },
                     {
                       errors: [{ message: "Error 2" }],
                       startTime: "2023-01-01T00:00:00Z",
                       duration: 1000,
                       status: "passed",
+                      attachments: [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/root/work/123test/js_project/test-results/test-1-test-chromium/test-failed-1.png"
+                        }
+                      ]
                     },
                   ],
                 },
@@ -331,6 +346,7 @@ describe("parseJsonContent", () => {
           projectID: "proj1",
           result: "passed",
           startTime: 1672531200,
+          attachments: [],
         },
         {
           description: null,
@@ -342,6 +358,13 @@ describe("parseJsonContent", () => {
           projectID: "proj1",
           result: "passed",
           startTime: 1672531200,
+          attachments: [
+            new Attachment(
+              "test-failed-1.png",
+              "/root/work/123test/js_project/test-results/test-1-test-chromium/test-failed-1.png",
+              AttachmentType.FILE
+            )
+          ],
         },
       ],
       "tests/spec2.js?Suite 2 Spec 2": [],
@@ -366,6 +389,7 @@ describe("parseJsonFile", () => {
           endTime: 1672531201,
           message: "",
           content: "",
+          attachmentss: [],
         },
       ],
     };
