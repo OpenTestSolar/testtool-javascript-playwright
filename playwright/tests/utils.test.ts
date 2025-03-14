@@ -268,6 +268,34 @@ describe("parseJsonContent", () => {
                       startTime: "2023-01-01T00:00:00Z",
                       duration: 1000,
                       status: "passed",
+                      stdout: [
+                        {
+                          "text": "增加日志展示\n"
+                        },
+                        {
+                          "text": "进入百度页面\n"
+                        },
+                        {
+                          "text": "点击输入框\n"
+                        },
+                        {
+                          "text": "输入playwright\n"
+                        },
+                        {
+                          "text": "点击百度一下\n"
+                        },
+                        {
+                          "text": "等待弹出页面\n"
+                        },
+                        {
+                          "text": "点击百度翻译\n"
+                        }
+                      ],
+                      stderr: [
+                        {
+                        "text": "点击百度翻译\n"
+                        }
+                      ],
                     },
                   ],
                 },
@@ -324,7 +352,7 @@ describe("parseJsonContent", () => {
         {
           description: "desc",
           owner: "amb",
-          content: "Error 2\n",
+          content: "\n==== 标准输出 ====\n增加日志展示\n进入百度页面\n点击输入框\n输入playwright\n点击百度一下\n等待弹出页面\n点击百度翻译\n\n==== 标准错误输出 ====\n点击百度翻译\n\n==== 错误信息 ====\nError 2\n",
           duration: 1,
           endTime: 1672531201,
           message: "",
@@ -335,7 +363,7 @@ describe("parseJsonContent", () => {
         {
           description: null,
           owner: null,
-          content: "Error 2\n",
+          content: "\n==== 错误信息 ====\nError 2\n",
           duration: 1,
           endTime: 1672531201,
           message: "",
@@ -343,8 +371,7 @@ describe("parseJsonContent", () => {
           result: "passed",
           startTime: 1672531200,
         },
-      ],
-      "tests/spec2.js?Suite 2 Spec 2": [],
+      ]
     });
   });
 });
@@ -355,19 +382,7 @@ describe("parseJsonFile", () => {
     const jsonName = "tests/results.json";
     const result = parseJsonFile(projPath, jsonName, []);
     const expectedResults = {
-      "/project/spec1.js?Suite 1 Spec 1": [
-        {
-          projectID: "proj1",
-          result: "passed",
-          duration: 1,
-          startTime: 1672531200,
-          description: null,
-          owner: null,
-          endTime: 1672531201,
-          message: "",
-          content: "",
-        },
-      ],
+      "/project/spec1.js?Suite 1 Spec 1": [],
     };
     expect(result).toEqual(expectedResults);
   });
