@@ -367,7 +367,7 @@ describe("parseJsonContent", () => {
         {
           description: "desc",
           owner: "amb",
-          content: "\n==== 标准输出 ====\n增加日志展示\n进入百度页面\n点击输入框\n输入playwright\n点击百度一下\n等待弹出页面\n点击百度翻译\n\n==== 标准错误输出 ====\n点击百度翻译\n\n==== 错误信息 ====\nError 2\n",
+          content: "\n==== 标准输出 ====\n增加日志展示\n进入百度页面\n点击输入框\n输入playwright\n点击百度一下\n等待弹出页面\n点击百度翻译\n\n==== 标准错误输出 ====\n点击百度翻译\nError 2\n",
           duration: 1,
           endTime: 1672531201,
           message: "",
@@ -379,7 +379,7 @@ describe("parseJsonContent", () => {
         {
           description: null,
           owner: null,
-          content: "\n==== 错误信息 ====\nError 2\n",
+          content: "Error 2\n",
           duration: 1,
           endTime: 1672531201,
           message: "",
