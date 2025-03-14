@@ -32,11 +32,11 @@ export async function collectTestCases(
     process.chdir(projPath);
     log.info(`Current directory: ${process.cwd()}`);
 
-    const newDirPath = path.join(projPath, "attachments");
-    if (!fs.existsSync(newDirPath)) {
-      fs.mkdirSync(newDirPath, { recursive: true });
+    const attachmentPath = path.join(projPath, "attachments");
+    if (!fs.existsSync(attachmentPath)) {
+      fs.mkdirSync(attachmentPath, { recursive: true });
     }
-    const filePath = path.join(newDirPath, "load.json");
+    const filePath = path.join(projPath, "load.json");
 
 
     // 执行命令获取output.json文件内容
