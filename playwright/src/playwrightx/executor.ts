@@ -51,13 +51,12 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     for (const [casePath, testcases] of Object.entries(caseLists)) {
         // 执行命令并解析用例生成的 JSON 文件
         const jsonName = casePath.replace(/\//g, "_") + ".json";
-        const caseJsonFile = path.join(attachmentsPath, jsonName);
-        const { command, testIdentifiers } = generateCommands(casePath, testcases, caseJsonFile);
+        const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
         const testResults = await executeCommands(
             projPath,
             command,
             testIdentifiers,
-            caseJsonFile,
+            jsonName,
         );
         
         const results = createTestResults(testResults);
