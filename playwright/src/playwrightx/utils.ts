@@ -14,6 +14,8 @@ import {
   TestCaseLog,
   LogLevel,
   ResultType,
+  AttachmentType,
+  Attachment,
 } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
 import {
@@ -26,12 +28,20 @@ interface ResultError {
   message: string;
 }
 
+interface AttachmentInfo {
+  name: string;
+  path: string;
+  contentType: string;
+}
+
 interface Result {
   startTime: string;
   duration: number;
   status: string;
   error?: ResultError;
   errors?: ResultError[];
+  attachments?: AttachmentInfo[];
+
 }
 
 interface Annotations {
@@ -99,6 +109,7 @@ interface SpecResult {
   content: string;
   owner: string | null;
   description: string | null;
+  attachments?: Attachment[];
 }
 
 // 定义JSON数据的类型接口
@@ -421,6 +432,23 @@ export function parseJsonContent(
                   }
                 }
 
+                // 处理附件
+                const testcaseAttachments: Attachment[] = [];
+                if (result.attachments) {
+                  console.log(`发现 attachments 数量: ${result.attachments.length}`);
+                  for (const attachment of result.attachments) {
+                    const attachmentName = attachment.name;
+                    const attachmentPath = attachment.path;
+                    if (["screenshot", "video", "trace"].includes(attachmentName)) {
+                      // 获取文件名
+                      const fileName = path.basename(attachmentPath);
+                      testcaseAttachments.push(
+                        new Attachment(fileName, attachmentPath, AttachmentType.FILE)
+                      );
+                    }
+                  }
+                }
+
                 specResult = {
                   projectID: specProjectId,
                   result: result.status,
@@ -431,6 +459,7 @@ export function parseJsonContent(
                   content: specErrorCtx,
                   owner: owner,
                   description: description,
+                  attachments: testcaseAttachments,
                 };
               }
             }
@@ -513,6 +542,22 @@ export async function executeCommands(
   log.info(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
+
+  // 复制文件到附件目录，加载用例已创建该目录，此处不做检查
+  const attachmentPath = path.join(projPath, 'attachments'); // 附件目录
+
+  // 检查 JSON 文件是否存在
+  if (!fs.existsSync(jsonFile)) {
+    console.error(`用例json文件不存在: ${jsonFile}`);
+  } else {
+    // 定义目标文件路径
+    const targetFilePath = path.join(attachmentPath, path.basename(jsonFile));
+
+    // 复制文件
+    fs.copyFileSync(jsonFile, targetFilePath);
+    console.log(`文件已复制到: ${targetFilePath}`);
+  }
+
   // 解析 JSON 文件并处理结果
   const testResults = parseJsonFile(projPath, jsonFile, cases);
   Object.assign(results, testResults);
@@ -567,13 +612,14 @@ export function createTestResults(
         result.result === "passed" ? ResultType.SUCCEED : ResultType.FAILED;
       const message = result.message || "";
       const content = result.content || "";
+      const attachments = result.attachments || [];
 
       // 创建 TestCaseLog 实例
       const testLog = new TestCaseLog(
         startTime, // 使用结束时间作为日志时间
         result.result === "passed" ? LogLevel.INFO : LogLevel.ERROR,
         content,
-        [], // 空附件数组
+        attachments, 
         undefined, // 无断言错误
         undefined, // 无运行时错误
       );
