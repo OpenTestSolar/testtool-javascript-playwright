@@ -264,7 +264,7 @@ export const filterTestcases = async (
           break;
         }
       } else {
-        if (testCase.includes(selector)) {
+        if (testCase.includes(encodeURI(selector))) {
           matched = true;
           break;
         }
