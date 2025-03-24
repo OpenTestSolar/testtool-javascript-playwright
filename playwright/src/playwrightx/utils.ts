@@ -464,10 +464,9 @@ export function parseJsonContent(
                 if (result.attachments && result.attachments.length > 0) {
                   console.log(`发现 attachments 数量: ${result.attachments.length}`);
                   
-                  const targetDir = path.join(projPath, 'testcase_attachments');
-                  if (!fs.existsSync(targetDir)) {
-                    fs.mkdirSync(targetDir, { recursive: true });
-                  }
+                  // 直接使用系统临时目录
+                  const targetDir = os.tmpdir();
+                  console.log(`使用系统临时目录: ${targetDir}`);
                 
                   for (const attachment of result.attachments) {
                     const attachmentName = attachment.name;
@@ -480,14 +479,14 @@ export function parseJsonContent(
                         const ext = path.extname(originalName);
                         const nameWithoutExt = path.basename(originalName, ext);
                         
-                        // 添加时间戳创建新文件名
+                        // 添加时间戳创建新文件名，确保唯一性
                         const timestamp = new Date().getTime();
                         const fileName = `${nameWithoutExt}_${timestamp}${ext}`;
                         
                         // 构建新的文件路径
                         const newPath = path.join(targetDir, fileName);
                         
-                        // 复制文件到新目录
+                        // 复制文件到临时目录
                         fs.copyFileSync(attachmentPath, newPath);
                         
                         // 使用新的文件路径创建 Attachment 对象
@@ -503,7 +502,7 @@ export function parseJsonContent(
                     }
                   }
                 }
-
+                
                   specResult = {
                     projectID: specProjectId,
                     result: result.status,
