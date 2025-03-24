@@ -461,21 +461,48 @@ export function parseJsonContent(
 
                 // 处理附件
                 const testcaseAttachments: Attachment[] = [];
-                if (result.attachments) {
+                if (result.attachments && result.attachments.length > 0) {
                   console.log(`发现 attachments 数量: ${result.attachments.length}`);
+                  
+                  // 直接使用系统临时目录
+                  const targetDir = os.tmpdir();
+                  console.log(`使用系统临时目录: ${targetDir}`);
+                
                   for (const attachment of result.attachments) {
                     const attachmentName = attachment.name;
                     const attachmentPath = attachment.path;
-                    if (["screenshot", "video", "trace"].includes(attachmentName)) {
-                      // 获取文件名
-                      const fileName = path.basename(attachmentPath);
-                      testcaseAttachments.push(
-                        new Attachment(fileName, attachmentPath, AttachmentType.FILE)
-                      );
+                    
+                    if (["screenshot", "video", "trace"].includes(attachmentName) && attachmentPath) {
+                      try {
+                        // 获取原始文件名和扩展名
+                        const originalName = path.basename(attachmentPath);
+                        const ext = path.extname(originalName);
+                        const nameWithoutExt = path.basename(originalName, ext);
+                        
+                        // 添加时间戳创建新文件名，确保唯一性
+                        const timestamp = new Date().getTime();
+                        const fileName = `${nameWithoutExt}_${timestamp}${ext}`;
+                        
+                        // 构建新的文件路径
+                        const newPath = path.join(targetDir, fileName);
+                        
+                        // 复制文件到临时目录
+                        fs.copyFileSync(attachmentPath, newPath);
+                        
+                        // 使用新的文件路径创建 Attachment 对象
+                        testcaseAttachments.push(
+                          new Attachment(fileName, newPath, AttachmentType.FILE)
+                        );
+                        
+                        console.log(`成功复制文件 ${fileName} 到 ${newPath}`);
+                      } catch (error) {
+                        const message = error instanceof Error ? error.message : "Unknown error";
+                        log.error(`复制文件 ${attachmentPath} 失败: ${message}`);
+                      }
                     }
                   }
                 }
-
+                
                   specResult = {
                     projectID: specProjectId,
                     result: result.status,

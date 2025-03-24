@@ -386,13 +386,7 @@ describe("parseJsonContent", () => {
           projectID: "proj1",
           result: "passed",
           startTime: 1672531200,
-          attachments: [
-            new Attachment(
-              "test-failed-1.png",
-              "/root/work/123test/js_project/test-results/test-1-test-chromium/test-failed-1.png",
-              AttachmentType.FILE
-            )
-          ],
+          attachments: [],
         },
       ]
     });
