@@ -795,52 +795,55 @@ export async function createRunningTestResults(
   path: string,
   names: string[],
   reporter: Reporter,
-): Promise<void> {
+): Promise<void>{
+  const testResults: TestResult[] = [];
   const casePrefix = getTestcasePrefix();
   const currentTime = new Date().toISOString();
   
-  // 并行处理所有测试用例以提高性能
-  try {
-    await Promise.all(names.map(async (name) => {
-      const fullTestCase = name ? `${path}?${name}` : path;
-      const test = new TestCase(
-        encodeQueryParams(`${casePrefix}${fullTestCase}`), 
-        {}
-      );
-      
-      const testLog = new TestCaseLog(
-        currentTime,
-        LogLevel.INFO,
-        "Test execution started",
-        [],
-        undefined,
-        undefined,
-      );
-      
-      const testStep = new TestCaseStep(
-        currentTime,
-        undefined, // 对于运行中的测试，结束时间未定义更合理
-        "Running test case",
-        ResultType.RUNNING,
-        [testLog],
-      );
-      
-      const testResult = new TestResult(
-        test,
-        currentTime,
-        undefined, // 同样，对于运行中的测试，结束时间未定义
-        ResultType.RUNNING,
-        "Test execution in progress",
-        [testStep],
-      );
-      
-      try {
-        await reporter.reportTestResult(testResult);
-      } catch (error) {
-        console.error(`Failed to report test result for ${fullTestCase}:`, error);
-      }
-    }));
-  } catch (error) {
-    console.error("Error creating running test results:", error);
+  // 遍历每个测试名称
+  for (const name of names) {
+    // 构建完整测试用例路径
+    const fullTestCase = name ? `${path}?${name}` : path;
+    
+    // 创建TestCase实例
+    const test = new TestCase(
+      encodeQueryParams(`${casePrefix}${fullTestCase}`), 
+      {}
+    );
+    
+    // 创建测试日志
+    const testLog = new TestCaseLog(
+      currentTime,
+      LogLevel.INFO,
+      "",
+      [], // 无附件
+      undefined, // 无断言错误
+      undefined, // 无运行时错误
+    );
+    
+    // 创建测试步骤
+    const testStep = new TestCaseStep(
+      currentTime, // 开始时间
+      undefined, // 结束时间设为相同值，因为测试仍在运行
+      "",
+      ResultType.RUNNING,
+      [testLog],
+    );
+    
+    // 创建测试结果
+    const testResult = new TestResult(
+      test,
+      currentTime, // 开始时间
+      currentTime, // 结束时间设为相同值，因为测试仍在运行
+      ResultType.RUNNING, // 结果类型设为RUNNING
+      "", // 状态消息
+      [testStep],
+    );
+    
+    // 添加到结果数组
+    testResults.push(testResult);
+  }
+  for (const result of testResults) {
+    await reporter.reportTestResult(result);
   }
 }
