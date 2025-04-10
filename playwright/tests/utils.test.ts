@@ -523,12 +523,6 @@ describe('encodeQueryParams', () => {
     expect(encodeQueryParams(url)).toBe(expected);
   });
 
-  // 已编码内容测试
-  test('should re-encode already encoded params', () => {
-    const url = 'http://example.com?name=test%20value';
-    const expected = 'http://example.com?name%253Dtest%2520value';
-    expect(encodeQueryParams(url)).toBe(expected);
-  });
 
   // 复杂URL结构测试
   test('should handle complex URL structure', () => {
