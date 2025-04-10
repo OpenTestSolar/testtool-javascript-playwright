@@ -139,6 +139,26 @@ interface PlaywrightReport {
   };
 }
 
+export function encodeQueryParams(url: string): string {
+  // 查找问号位置
+  const questionMarkIndex = url.indexOf('?');
+  
+  // 如果没有问号，直接返回原字符串
+  if (questionMarkIndex === -1) {
+    return url;
+  }
+  
+  // 分割URL为基础部分和查询参数部分
+  const baseUrl = url.substring(0, questionMarkIndex);
+  const queryString = url.substring(questionMarkIndex + 1);
+  
+  // 对查询参数部分进行编码
+  const encodedQueryString = encodeURIComponent(queryString);
+  
+  // 重新拼接返回结果
+  return `${baseUrl}?${encodedQueryString}`;
+}
+
 // 执行命令并返回结果
 export async function executeCommand(
   command: string,
@@ -264,7 +284,7 @@ export const filterTestcases = async (
           break;
         }
       } else {
-        if (testCase.includes(encodeURI(selector))) {
+        if (testCase.includes(encodeQueryParams(selector))) {
           matched = true;
           break;
         }
@@ -313,7 +333,7 @@ export const parseTestcase = (
         const caseName = spec.title;
         const testcase =
           casePath + "?" + (desc ? `${desc} ${caseName}` : caseName);
-        testcases.push(encodeURI(testcase));
+        testcases.push(encodeQueryParams(testcase));
       });
     }
   });
@@ -659,7 +679,7 @@ export function createTestResults(
   const casePrefix = getTestcasePrefix();
   for (const [testCase, results] of Object.entries(output)) {
     for (const result of results) {
-      const test = new TestCase(encodeURI(`${casePrefix}${testCase}`), { "owner": result.owner || "", "description": result.description || "" }); // 假设 TestCase 构造函数接受路径和空记录
+      const test = new TestCase(encodeQueryParams(`${casePrefix}${testCase}`), { "owner": result.owner || "", "description": result.description || "" }); // 假设 TestCase 构造函数接受路径和空记录
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
       const resultType =
