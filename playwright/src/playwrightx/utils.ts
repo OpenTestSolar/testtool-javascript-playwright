@@ -18,6 +18,7 @@ import {
   Attachment,
 } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
+import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 import {
   LoadError,
 } from "testsolar-oss-sdk/src/testsolar_sdk/model/load";
@@ -787,5 +788,59 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
     );
 
     return [parseError];
+  }
+}
+
+export async function createRunningTestResults(
+  path: string,
+  names: string[],
+  reporter: Reporter,
+): Promise<void> {
+  const casePrefix = getTestcasePrefix();
+  const currentTime = new Date().toISOString();
+  
+  // 并行处理所有测试用例以提高性能
+  try {
+    await Promise.all(names.map(async (name) => {
+      const fullTestCase = name ? `${path}?${name}` : path;
+      const test = new TestCase(
+        encodeQueryParams(`${casePrefix}${fullTestCase}`), 
+        {}
+      );
+      
+      const testLog = new TestCaseLog(
+        currentTime,
+        LogLevel.INFO,
+        "Test execution started",
+        [],
+        undefined,
+        undefined,
+      );
+      
+      const testStep = new TestCaseStep(
+        currentTime,
+        undefined, // 对于运行中的测试，结束时间未定义更合理
+        "Running test case",
+        ResultType.RUNNING,
+        [testLog],
+      );
+      
+      const testResult = new TestResult(
+        test,
+        currentTime,
+        undefined, // 同样，对于运行中的测试，结束时间未定义
+        ResultType.RUNNING,
+        "Test execution in progress",
+        [testStep],
+      );
+      
+      try {
+        await reporter.reportTestResult(testResult);
+      } catch (error) {
+        console.error(`Failed to report test result for ${fullTestCase}:`, error);
+      }
+    }));
+  } catch (error) {
+    console.error("Error creating running test results:", error);
   }
 }

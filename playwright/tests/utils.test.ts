@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, jest, test } from "@jest/globals";
 import * as process from "process";
 import * as fs from "fs";
 import {
@@ -18,11 +18,12 @@ import {
   getTestcasePrefix,
   parsePlaywrightReport,
   encodeQueryParams,
+  createRunningTestResults,
 } from "../src/playwrightx/utils";
 
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
-import { Attachment, AttachmentType } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
+import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
 
 describe("parsePlaywrightReport", () => {  // 更改为与测试函数名称一致
@@ -538,5 +539,53 @@ describe('encodeQueryParams', () => {
     const encoded = encodeQueryParams(url);
     expect(encoded).toMatch(/^http:\/\/example\.com\?param%3D[a%]+$/);
     expect(encoded.length).toBeGreaterThan(1000);
+  });
+});
+
+
+describe("createRunningTestResults", () => {
+  test("should create test results and report them", async () => {
+    // 模拟依赖
+    const getTestcasePrefix = jest.fn().mockReturnValue("prefix/");
+    const encodeQueryParams = jest.fn(url => url);
+    (global as any).getTestcasePrefix = getTestcasePrefix;    
+    (global as any).encodeQueryParams = encodeQueryParams;
+    
+    // 模拟日期
+    const mockDate = new Date("2023-01-01T00:00:00Z");
+    const mockISOString = mockDate.toISOString();
+    jest.spyOn(global, "Date").mockImplementation(() => mockDate);
+    jest.spyOn(mockDate, "toISOString").mockReturnValue(mockISOString);
+    
+
+    
+    // 模拟构造函数
+    const TestCase = jest.fn();
+    const TestCaseLog = jest.fn();
+    const TestCaseStep = jest.fn();
+    const TestResult = jest.fn(function(test, startTime, endTime, result, message, steps) {
+      return { test, startTime, endTime, result, message, steps };
+    });
+    
+    (global as any).TestCase = TestCase;
+    (global as any).TestCaseLog = TestCaseLog;
+    (global as any).TestCaseStep = TestCaseStep;
+    (global as any).TestResult = TestResult;
+    (global as any).LogLevel = { INFO: "INFO" };
+    (global as any).ResultType = { RUNNING: "RUNNING" };
+    
+    // 输入参数
+    const path = "path/to/test";
+    const names = ["testName1", "testName2"];
+    
+    const reporter = new Reporter("123123", "/tmp");
+    // 调用函数
+    await createRunningTestResults(path, names, reporter);
+    
+    // 验证结果
+    expect(TestCase).toHaveBeenCalledTimes(2);
+    expect(TestCase).toHaveBeenCalledWith("prefix/path/to/test?testName1", {});
+    expect(TestCase).toHaveBeenCalledWith("prefix/path/to/test?testName2", {});
+    
   });
 });
