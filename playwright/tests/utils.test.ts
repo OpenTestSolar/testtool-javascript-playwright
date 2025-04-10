@@ -17,6 +17,7 @@ import {
   parseTimeStamp,
   getTestcasePrefix,
   parsePlaywrightReport,
+  encodeQueryParams,
 } from "../src/playwrightx/utils";
 
 import * as path from "path";
@@ -475,4 +476,73 @@ describe('getTestcasePrefix', () => {
     expect(getTestcasePrefix()).toBe('test-prefix/');
   });
 
+});
+
+describe('encodeQueryParams', () => {
+  // 基础功能测试
+  test('should return original URL when no query params', () => {
+    const url = 'http://example.com/path';
+    expect(encodeQueryParams(url)).toBe(url);
+  });
+
+  test('should encode simple query params', () => {
+    const url = 'http://example.com?name=test&value=1';
+    const expected = 'http://example.com?name%3Dtest%26value%3D1';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 边界条件测试
+  test('should handle empty query params', () => {
+    const url = 'http://example.com?';
+    expect(encodeQueryParams(url)).toBe(url);
+  });
+
+  test('should handle URL with multiple question marks', () => {
+    const url = 'http://example.com?param=1?another=2';
+    const expected = 'http://example.com?param%3D1%3Fanother%3D2';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 特殊字符测试
+  test('should encode special characters in query params', () => {
+    const url = 'http://example.com?query=a b&c=1';
+    const expected = 'http://example.com?query%3Da%20b%26c%3D1';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  test('should encode non-ASCII characters', () => {
+    const url = 'http://example.com?text=你好&code=🍀';
+    const expected = 'http://example.com?text%3D%E4%BD%A0%E5%A5%BD%26code%3D%F0%9F%8D%80';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 保留字符测试
+  test('should encode reserved characters', () => {
+    const url = 'http://example.com?q=!@#$%^&*()_+';
+    const expected = 'http://example.com?q%3D!%40%23%24%25%5E%26*()_%2B';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 已编码内容测试
+  test('should re-encode already encoded params', () => {
+    const url = 'http://example.com?name=test%20value';
+    const expected = 'http://example.com?name%253Dtest%2520value';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 复杂URL结构测试
+  test('should handle complex URL structure', () => {
+    const url = 'https://user:pass@example.com:8080/path/to?query=param#hash';
+    const expected = 'https://user:pass@example.com:8080/path/to?query%3Dparam%23hash';
+    expect(encodeQueryParams(url)).toBe(expected);
+  });
+
+  // 性能测试
+  test('should handle very long query params', () => {
+    const longParam = 'a'.repeat(1000);
+    const url = `http://example.com?param=${longParam}`;
+    const encoded = encodeQueryParams(url);
+    expect(encoded).toMatch(/^http:\/\/example\.com\?param%3D[a%]+$/);
+    expect(encoded.length).toBeGreaterThan(1000);
+  });
 });
