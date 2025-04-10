@@ -55,7 +55,8 @@ export async function runTestCase(runParamFile: string): Promise<void> {
         createRunningTestResults(casePath, testcases, reporter);
     
         // 执行命令并解析用例生成的 JSON 文件
-        const jsonName = casePath.replace(/\//g, "_") + ".json";
+        log.info(`当前进程ID: ${process.pid}`)
+        const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
         const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
         const testResults = await executeCommands(
             projPath,
