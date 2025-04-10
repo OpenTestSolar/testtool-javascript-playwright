@@ -18,6 +18,7 @@ import {
   Attachment,
 } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
+import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 import {
   LoadError,
 } from "testsolar-oss-sdk/src/testsolar_sdk/model/load";
@@ -787,5 +788,62 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
     );
 
     return [parseError];
+  }
+}
+
+export async function createRunningTestResults(
+  path: string,
+  names: string[],
+  reporter: Reporter,
+): Promise<void>{
+  const testResults: TestResult[] = [];
+  const casePrefix = getTestcasePrefix();
+  const currentTime = new Date().toISOString();
+  
+  // 遍历每个测试名称
+  for (const name of names) {
+    // 构建完整测试用例路径
+    const fullTestCase = name ? `${path}?${name}` : path;
+    
+    // 创建TestCase实例
+    const test = new TestCase(
+      encodeQueryParams(`${casePrefix}${fullTestCase}`), 
+      {}
+    );
+    
+    // 创建测试日志
+    const testLog = new TestCaseLog(
+      currentTime,
+      LogLevel.INFO,
+      "",
+      [], // 无附件
+      undefined, // 无断言错误
+      undefined, // 无运行时错误
+    );
+    
+    // 创建测试步骤
+    const testStep = new TestCaseStep(
+      currentTime, // 开始时间
+      undefined, // 结束时间设为相同值，因为测试仍在运行
+      "",
+      ResultType.RUNNING,
+      [testLog],
+    );
+    
+    // 创建测试结果
+    const testResult = new TestResult(
+      test,
+      currentTime, // 开始时间
+      currentTime, // 结束时间设为相同值，因为测试仍在运行
+      ResultType.RUNNING, // 结果类型设为RUNNING
+      "", // 状态消息
+      [testStep],
+    );
+    
+    // 添加到结果数组
+    testResults.push(testResult);
+  }
+  for (const result of testResults) {
+    await reporter.reportTestResult(result);
   }
 }

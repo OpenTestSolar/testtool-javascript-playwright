@@ -9,7 +9,8 @@ import {
     createTestResults,
     generateCommands,
     groupTestCasesByPath,
-    getTestcasePrefix
+    getTestcasePrefix,
+    createRunningTestResults
 } from "./utils";
 
 export async function runTestCase(runParamFile: string): Promise<void> {
@@ -47,8 +48,12 @@ export async function runTestCase(runParamFile: string): Promise<void> {
       fs.mkdirSync(attachmentsPath, { recursive: true });
     }
 
+    const reporter = new Reporter(taskId, data.FileReportPath);
     // 对每个文件生成命令行
     for (const [casePath, testcases] of Object.entries(caseLists)) {
+        // 上报用例运行状态
+        createRunningTestResults(casePath, testcases, reporter);
+    
         // 执行命令并解析用例生成的 JSON 文件
         const jsonName = casePath.replace(/\//g, "_") + ".json";
         const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
@@ -60,7 +65,6 @@ export async function runTestCase(runParamFile: string): Promise<void> {
         );
         
         const results = createTestResults(testResults);
-        const reporter = new Reporter(taskId, data.FileReportPath);
         for (const result of results) {
             await reporter.reportTestResult(result);
         }
