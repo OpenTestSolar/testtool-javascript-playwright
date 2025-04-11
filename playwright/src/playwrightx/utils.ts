@@ -352,20 +352,35 @@ export function generateCommands(
 
   // 从环境变量中获取 TESTSOLAR_TTP_EXTRAARGS 值
   const extraArgs = process.env.TESTSOLAR_TTP_EXTRAARGS || "";
+  
+  // 检查是否存在 TESTSOLAR_TTP_ENVJSONFILE 环境变量
+  const useEnvJsonFile = process.env.TESTSOLAR_TTP_ENVJSONFILE;
 
-  // 检查 testCases 是否为空
-  if (testCases.length === 0) {
-    const defaultCommand = `npx playwright test --reporter=json ${extraArgs} > ${jsonName}`;
-    log.info(`Generated default command for test cases: ${defaultCommand}`);
-    return { command: defaultCommand, testIdentifiers: [] };
+  // 获取 grep 模式
+  let grepPattern = "";
+  if (testCases.length > 0) {
+    grepPattern = `--grep="${decodeURIComponent(testCases.join("|"))}"`;
   }
 
-  let grepPattern = decodeURI(testCases.join("|"));
-  if (grepPattern) {
-    grepPattern = `--grep="${grepPattern}"`;
+  let command;
+  
+  if (useEnvJsonFile) {
+    // 使用环境变量设置 JSON 输出
+    if (testCases.length === 0) {
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json --trace on ${extraArgs}`;
+    } else {
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs}`;
+    }
+  } else {
+    // 使用原始的重定向方式
+    if (testCases.length === 0) {
+      command = `npx playwright test --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+    } else {
+      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+    }
   }
-  const command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${extraArgs} > ${jsonName}`;
 
+  // 生成测试标识符
   for (const testcase of testCases) {
     testIdentifiers.push(`${casePath}?${testcase}`);
   }
