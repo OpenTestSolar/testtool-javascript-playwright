@@ -19,8 +19,17 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const data = JSON.parse(fileContent);
     log.info(`Pipe file content:\n${JSON.stringify(data, null, 2)}`);
     const testSelectors = data.TestSelectors || [];
-    const projPath = data.ProjectPath;
+    let projPath = data.ProjectPath;
     const taskId = data.TaskId;
+  
+    const relPath = process.env.TESTSOLAR_TTP_RELPATH || "";
+    if (relPath !== "") {
+        log.info(`Relative path: ${relPath}`);
+        projPath = path.join(projPath, relPath);
+        
+        // 进入projPath目录
+        process.chdir(projPath);
+    }
   
     const testcasePrefix = getTestcasePrefix();
 
