@@ -108,8 +108,14 @@ export async function loadTestCasesFromFile(filePath: string): Promise<void> {
   const data = JSON.parse(fileContent);
   log.info(`Pipe file content:\n${JSON.stringify(data, null, 2)}`);
   const testSelectors = data.TestSelectors || [];
-  const projPath = data.ProjectPath;
+  let projPath = data.ProjectPath;
   const taskId = data.TaskId;
+
+  const relPath = process.env.TESTSOLAR_TTP_RELPATH || "";
+  if (relPath !== "") {
+    log.info(`Relative path: ${relPath}`);
+    projPath = path.join(projPath, relPath);
+  }
 
   log.info("generate demo load result");
   const loadResults: LoadResult = await collectTestCases(
