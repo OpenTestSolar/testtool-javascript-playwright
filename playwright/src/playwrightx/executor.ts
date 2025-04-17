@@ -32,51 +32,91 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     }
   
     const testcasePrefix = getTestcasePrefix();
-
-    // 新的 selector 列表
-    const newSelectors: string[] = [];
-
-    // 遍历 testSelectors
-    testSelectors.forEach((selector: string) => {
-        if (testcasePrefix && selector) {
-            // 去掉前缀
-            const newSelector = selector.replace(new RegExp(`^${testcasePrefix}`), "");
-            newSelectors.push(newSelector);
-        } else {
-            // 如果前缀为空或 selector 为空，直接添加到新的列表中
-            newSelectors.push(selector);
-        }
-    });
-
-    // 按照文件对用例进行分组
-    const caseLists = groupTestCasesByPath(newSelectors);
-  
+    const reporter = new Reporter(taskId, data.FileReportPath);
+    
     // 创建附件目录
     const attachmentsPath = path.join(projPath, "attachments");
     if (!fs.existsSync(attachmentsPath)) {
       fs.mkdirSync(attachmentsPath, { recursive: true });
     }
 
-    const reporter = new Reporter(taskId, data.FileReportPath);
-    // 对每个文件生成命令行
-    for (const [casePath, testcases] of Object.entries(caseLists)) {
-        // 上报用例运行状态
-        createRunningTestResults(casePath, testcases, reporter);
+    // 检查是否运行所有测试用例
+    const runAllCases = process.env.TESTSOLAR_TTP_RUN_ALL_CASES;
     
-        // 执行命令并解析用例生成的 JSON 文件
-        log.info(`当前进程ID: ${process.pid}`)
-        const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
-        const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
+    if (runAllCases) {
+        log.info("Running all test cases with one command...");
+        
+        // 为所有测试生成一个唯一的 JSON 文件名
+        const jsonName = `test_pid_${process.pid}.json`;
+        
+        // 为所有测试用例生成命令
+        const { command, testIdentifiers } = generateCommands(
+            "", // 空路径表示所有文件
+            [], // 空数组表示所有测试
+            jsonName
+        );
+        
+        // 上报所有选择的测试用例为运行中状态
+        if (testSelectors.length > 0) {
+            createRunningTestResults("", testSelectors, reporter);
+        }
+        
+        // 执行命令并解析结果
         const testResults = await executeCommands(
             projPath,
             command,
-            testIdentifiers,
-            jsonName,
+            testIdentifiers.length > 0 ? testIdentifiers : testSelectors,
+            jsonName
         );
         
-        const results = createTestResults(testResults);
+        // 创建并上报测试结果
+        const results = createTestResults(testResults, testSelectors);
         for (const result of results) {
             await reporter.reportTestResult(result);
         }
+    } else {
+        // 原有逻辑 - 按文件和测试用例执行
+        // 新的 selector 列表
+        const newSelectors: string[] = [];
+
+        // 遍历 testSelectors
+        testSelectors.forEach((selector: string) => {
+            if (testcasePrefix && selector) {
+                // 去掉前缀
+                const newSelector = selector.replace(new RegExp(`^${testcasePrefix}`), "");
+                newSelectors.push(newSelector);
+            } else {
+                // 如果前缀为空或 selector 为空，直接添加到新的列表中
+                newSelectors.push(selector);
+            }
+        });
+
+        // 按照文件对用例进行分组
+        const caseLists = groupTestCasesByPath(newSelectors);
+      
+        // 对每个文件生成命令行
+        for (const [casePath, testcases] of Object.entries(caseLists)) {
+            // 上报用例运行状态
+            createRunningTestResults(casePath, testcases, reporter);
+        
+            // 执行命令并解析用例生成的 JSON 文件
+            log.info(`当前进程ID: ${process.pid}`)
+            const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
+            const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
+            const testResults = await executeCommands(
+                projPath,
+                command,
+                testIdentifiers,
+                jsonName,
+            );
+            
+            const results = createTestResults(testResults, testIdentifiers);
+            for (const result of results) {
+                await reporter.reportTestResult(result);
+            }
+        }
     }
 }
+
+
+runTestCase(process.argv[2])

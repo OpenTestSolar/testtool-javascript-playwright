@@ -476,7 +476,8 @@ describe("createTestResults", () => {
         },
       ],
     };
-    const testResults = createTestResults(output);
+    const tests = ["path/to/testcase"]
+    const testResults = createTestResults(output, tests);
     expect(testResults).toEqual(expect.arrayContaining([expect.any(Object)]));
   });
 });

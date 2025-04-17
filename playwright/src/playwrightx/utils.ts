@@ -355,6 +355,10 @@ export function generateCommands(
   
   // 检查是否存在 TESTSOLAR_TTP_ENVJSONFILE 环境变量
   const useEnvJsonFile = process.env.TESTSOLAR_TTP_ENVJSONFILE;
+  
+  // 检查是否应该启用 trace
+  const enableTrace = process.env.TESTSOLAR_TTP_TRACE === "1";
+  const traceOption = enableTrace ? "--trace on" : "";
 
   // 获取 grep 模式
   let grepPattern = "";
@@ -367,16 +371,16 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${extraArgs}`;
     } else {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `npx playwright test --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
     } else {
-      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
     }
   }
 
@@ -690,31 +694,43 @@ export function groupTestCasesByPath(
 
 export function createTestResults(
   output: Record<string, SpecResult[]>,
+  testIdentifiers: string[],
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const casePrefix = getTestcasePrefix();
+  
+  // 首先找出参考失败用例（output中的key不在testIdentifiers中的）
+  let referenceFailedTest: TestResult | null = null;
+  
+  // 处理output中的所有测试用例
   for (const [testCase, results] of Object.entries(output)) {
+    // 构建完整的测试路径
+    const fullTestPath = `${casePrefix}${testCase}`;
+    
+    // 判断当前测试用例是否在testIdentifiers中
+    const isInTestIdentifiers = testIdentifiers.includes(testCase);
+    
+    // 处理每个结果
     for (const result of results) {
-      const test = new TestCase(encodeQueryParams(`${casePrefix}${testCase}`), { "owner": result.owner || "", "description": result.description || "" }); // 假设 TestCase 构造函数接受路径和空记录
+      const testPath = encodeQueryParams(fullTestPath);
+      const test = new TestCase(testPath, { "owner": result.owner || "", "description": result.description || "" });
+      
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
-      const resultType =
-        result.result === "passed" ? ResultType.SUCCEED : ResultType.FAILED;
+      const resultType = result.result === "passed" ? ResultType.SUCCEED : ResultType.FAILED;
       const message = result.message || "";
       const content = result.content || "";
       const attachments = result.attachments || [];
 
-      // 创建 TestCaseLog 实例
       const testLog = new TestCaseLog(
-        startTime, // 使用结束时间作为日志时间
+        startTime,
         result.result === "passed" ? LogLevel.INFO : LogLevel.ERROR,
         content,
         attachments,
-        undefined, // 无断言错误
-        undefined, // 无运行时错误
+        undefined,
+        undefined,
       );
 
-      // 创建 TestCaseStep 实例
       const testStep = new TestCaseStep(
         startTime,
         endTime,
@@ -723,7 +739,6 @@ export function createTestResults(
         [testLog],
       );
 
-      // 创建 TestResult 实例
       const testResult = new TestResult(
         test,
         startTime,
@@ -732,9 +747,49 @@ export function createTestResults(
         message,
         [testStep],
       );
+      
+      // 如果该测试不在testIdentifiers中且结果是失败的，将其作为参考失败用例
+      if (!isInTestIdentifiers && resultType === ResultType.FAILED && !referenceFailedTest) {
+        referenceFailedTest = testResult;
+      }
+      
+      // 如果该测试在testIdentifiers中，将结果添加到testResults
+      if (isInTestIdentifiers) {
+        testResults.push(testResult);
+      }
+    }
+  }
 
+  // 确保每个testIdentifier都有对应的测试结果
+  for (const identifier of testIdentifiers) {
+    // 检查是否已经在结果中
+    const hasResult = testResults.some(result => {
+      // 去除casePrefix，然后解码比较
+      const decodedPath = decodeURIComponent(result.Test.Name.replace(casePrefix, ''));
+      return decodedPath === identifier;
+    });
+    
+    // 如果没有结果并且有参考失败用例，则创建一个相应的失败结果
+    if (!hasResult && referenceFailedTest) {
+      // 创建一个新的TestCase，使用identifier作为path
+      const fullIdentifierPath = encodeQueryParams(`${casePrefix}${identifier}`);
+      const newTest = new TestCase(fullIdentifierPath, {
+        owner: referenceFailedTest.Test.Attributes.owner,
+        description: referenceFailedTest.Test.Attributes.description
+      });
+      
+      // 创建一个新的TestResult，复制参考失败测试的其他属性
+      const newResult = new TestResult(
+        newTest,
+        referenceFailedTest.StartTime,
+        referenceFailedTest.EndTime,
+        ResultType.FAILED, // 确保是失败状态
+        `No test results found for this identifier: ${identifier}`, // 自定义消息
+        referenceFailedTest.Steps.slice() // 复制steps数组
+      );
+      
       // 添加到结果数组
-      testResults.push(testResult);
+      testResults.push(newResult);
     }
   }
 
