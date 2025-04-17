@@ -355,6 +355,10 @@ export function generateCommands(
   
   // 检查是否存在 TESTSOLAR_TTP_ENVJSONFILE 环境变量
   const useEnvJsonFile = process.env.TESTSOLAR_TTP_ENVJSONFILE;
+  
+  // 检查是否应该启用 trace
+  const enableTrace = process.env.TESTSOLAR_TTP_TRACE === "1";
+  const traceOption = enableTrace ? "--trace on" : "";
 
   // 获取 grep 模式
   let grepPattern = "";
@@ -367,16 +371,16 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${extraArgs}`;
     } else {
-      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `export NO_COLOR=1 && npx playwright test --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
     } else {
-      command = `export NO_COLOR=1 && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
     }
   }
 
