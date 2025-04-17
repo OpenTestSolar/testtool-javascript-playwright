@@ -358,8 +358,13 @@ export function generateCommands(
   
   // 检查是否应该启用 trace
   const enableTrace = process.env.TESTSOLAR_TTP_TRACE === "1";
-  const traceOption = enableTrace ? "--trace on" : "";
+  const traceOption = enableTrace ? "--trace on" : "--trace off";
 
+  // 创建基于测试路径和测试用例的哈希值
+  const input = `${casePath}-${testCases.join('-')}-${Date.now()}-${Math.random()}`;
+  const hash = require('crypto').createHash('md5').update(input).digest('hex').substring(0, 10);
+  const outputOption = `--output=test-results-${hash}`;
+  
   // 获取 grep 模式
   let grepPattern = "";
   if (testCases.length > 0) {
@@ -371,16 +376,16 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${extraArgs}`;
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${outputOption} ${extraArgs}`;
     } else {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs}`;
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${outputOption} ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `npx playwright test --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
+      command = `npx playwright test --reporter=json ${traceOption} ${outputOption} ${extraArgs} > ${jsonName}`;
     } else {
-      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
+      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${outputOption} ${extraArgs} > ${jsonName}`;
     }
   }
 
