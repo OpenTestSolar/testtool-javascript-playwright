@@ -367,16 +367,16 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json --trace on ${extraArgs}`;
     } else {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs}`;
+      command = `export NO_COLOR=1 && export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `npx playwright test --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test --reporter=json --trace on ${extraArgs} > ${jsonName}`;
     } else {
-      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs} > ${jsonName}`;
+      command = `export NO_COLOR=1 && npx playwright test ${casePath} ${grepPattern} --reporter=json --trace on ${extraArgs} > ${jsonName}`;
     }
   }
 
