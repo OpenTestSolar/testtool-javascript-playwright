@@ -74,7 +74,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
             jsonName,
         );
         
-        const results = createTestResults(testResults);
+        const results = createTestResults(testResults, testIdentifiers);
         for (const result of results) {
             await reporter.reportTestResult(result);
         }
