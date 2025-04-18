@@ -4,6 +4,7 @@ import * as util from "util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { createHash } from 'crypto';
 import { parseISO, addMilliseconds } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
 import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
@@ -362,7 +363,7 @@ export function generateCommands(
 
   // 创建基于测试路径和测试用例的哈希值
   const input = `${casePath}-${testCases.join('-')}-${Date.now()}-${Math.random()}`;
-  const hash = require('crypto').createHash('md5').update(input).digest('hex').substring(0, 10);
+  const hash = createHash('md5').update(input).digest('hex').substring(0, 10);
   const outputOption = `--output=test-results-${hash}`;
   
   // 获取 grep 模式
