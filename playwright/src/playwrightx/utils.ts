@@ -634,6 +634,7 @@ export async function executeCommands(
   command: string,
   cases: string[],
   jsonFile: string,  // 接收jsonFile作为参数
+  attachmentsPath: string,
 ): Promise<Record<string, SpecResult[]>> {
   const results: Record<string, SpecResult[]> = {};
 
@@ -642,15 +643,13 @@ export async function executeCommands(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
 
-  // 复制文件到附件目录，加载用例已创建该目录，此处不做检查
-  const attachmentPath = path.join(projPath, 'attachments'); // 附件目录
 
   // 检查 JSON 文件是否存在
   if (!fs.existsSync(jsonFile)) {
     console.error(`用例json文件不存在: ${jsonFile}`);
   } else {
     // 定义目标文件路径
-    const targetFilePath = path.join(attachmentPath, path.basename(jsonFile));
+    const targetFilePath = path.join(attachmentsPath, path.basename(jsonFile));
 
     // 复制文件
     fs.copyFileSync(jsonFile, targetFilePath);
