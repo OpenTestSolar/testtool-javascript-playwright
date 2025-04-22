@@ -22,6 +22,12 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     let projPath = data.ProjectPath;
     const taskId = data.TaskId;
   
+    // 创建附件目录
+    const attachmentsPath = path.join(projPath, "attachments");
+    if (!fs.existsSync(attachmentsPath)) {
+        fs.mkdirSync(attachmentsPath, { recursive: true });
+    }
+
     const relPath = process.env.TESTSOLAR_TTP_RELPATH || "";
     if (relPath !== "") {
         log.info(`Relative path: ${relPath}`);
@@ -33,12 +39,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
   
     const testcasePrefix = getTestcasePrefix();
     const reporter = new Reporter(taskId, data.FileReportPath);
-    
-    // 创建附件目录
-    const attachmentsPath = path.join(projPath, "attachments");
-    if (!fs.existsSync(attachmentsPath)) {
-      fs.mkdirSync(attachmentsPath, { recursive: true });
-    }
+
 
     // 检查是否运行所有测试用例
     const runAllCases = process.env.TESTSOLAR_TTP_RUN_ALL_CASES;
@@ -66,7 +67,8 @@ export async function runTestCase(runParamFile: string): Promise<void> {
             projPath,
             command,
             testIdentifiers.length > 0 ? testIdentifiers : testSelectors,
-            jsonName
+            jsonName,
+            attachmentsPath,
         );
         
         // 创建并上报测试结果
@@ -108,6 +110,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
                 command,
                 testIdentifiers,
                 jsonName,
+                attachmentsPath,
             );
             
             const results = createTestResults(testResults, testIdentifiers);
@@ -117,6 +120,3 @@ export async function runTestCase(runParamFile: string): Promise<void> {
         }
     }
 }
-
-
-runTestCase(process.argv[2])

@@ -4,6 +4,7 @@ import * as util from "util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { createHash } from 'crypto';
 import { parseISO, addMilliseconds } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
 import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
@@ -358,8 +359,13 @@ export function generateCommands(
   
   // 检查是否应该启用 trace
   const enableTrace = process.env.TESTSOLAR_TTP_TRACE === "1";
-  const traceOption = enableTrace ? "--trace on" : "";
+  const traceOption = enableTrace ? "--trace on" : "--trace off";
 
+  // 创建基于测试路径和测试用例的哈希值
+  const input = `${casePath}-${testCases.join('-')}-${Date.now()}-${Math.random()}`;
+  const hash = createHash('md5').update(input).digest('hex').substring(0, 10);
+  const outputOption = `--output=test-results-${hash}`;
+  
   // 获取 grep 模式
   let grepPattern = "";
   if (testCases.length > 0) {
@@ -371,16 +377,16 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${extraArgs}`;
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${outputOption} ${extraArgs}`;
     } else {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs}`;
+      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${outputOption} ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `npx playwright test --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
+      command = `npx playwright test --reporter=json ${traceOption} ${outputOption} ${extraArgs} > ${jsonName}`;
     } else {
-      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${extraArgs} > ${jsonName}`;
+      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${outputOption} ${extraArgs} > ${jsonName}`;
     }
   }
 
@@ -629,6 +635,7 @@ export async function executeCommands(
   command: string,
   cases: string[],
   jsonFile: string,  // 接收jsonFile作为参数
+  attachmentsPath: string,
 ): Promise<Record<string, SpecResult[]>> {
   const results: Record<string, SpecResult[]> = {};
 
@@ -637,15 +644,13 @@ export async function executeCommands(
     `Run cmdline: ${command} \n Run stdout: ${stdout}\nRun stderr: ${stderr}`,
   );
 
-  // 复制文件到附件目录，加载用例已创建该目录，此处不做检查
-  const attachmentPath = path.join(projPath, 'attachments'); // 附件目录
 
   // 检查 JSON 文件是否存在
   if (!fs.existsSync(jsonFile)) {
     console.error(`用例json文件不存在: ${jsonFile}`);
   } else {
     // 定义目标文件路径
-    const targetFilePath = path.join(attachmentPath, path.basename(jsonFile));
+    const targetFilePath = path.join(attachmentsPath, path.basename(jsonFile));
 
     // 复制文件
     fs.copyFileSync(jsonFile, targetFilePath);
