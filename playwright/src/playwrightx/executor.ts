@@ -120,6 +120,3 @@ export async function runTestCase(runParamFile: string): Promise<void> {
         }
     }
 }
-
-
-runTestCase(process.argv[2])
