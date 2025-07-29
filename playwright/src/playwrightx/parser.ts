@@ -123,7 +123,12 @@ export async function loadTestCasesFromFile(filePath: string): Promise<void> {
     testSelectors,
   );
 
+  
   const reporter = new Reporter(taskId, data.FileReportPath);
   await reporter.reportLoadResult(loadResults);
+  if ((!loadResults.Tests || loadResults.Tests.length === 0) && (loadResults.LoadErrors && loadResults.LoadErrors.length > 0)) {
+    log.error("用例加载失败：没有找到有效用例，但存在加载错误");
+    process.exit(1);
+  }
 }
 
