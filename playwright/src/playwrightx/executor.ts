@@ -21,6 +21,9 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const testSelectors = data.TestSelectors || [];
     let projPath = data.ProjectPath;
     const taskId = data.TaskId;
+
+    // 默认true， 有值则为false
+    const fileMode = !!process.env.TESTSOLAR_TTP_FILEMODE;
   
     // 创建附件目录
     const attachmentsPath = path.join(projPath, "attachments");
@@ -93,29 +96,61 @@ export async function runTestCase(runParamFile: string): Promise<void> {
             }
         });
 
-        // 按照文件对用例进行分组
-        const caseLists = groupTestCasesByPath(newSelectors);
-      
-        // 对每个文件生成命令行
-        for (const [casePath, testcases] of Object.entries(caseLists)) {
-            // 上报用例运行状态
-            createRunningTestResults(casePath, testcases, reporter);
-        
-            // 执行命令并解析用例生成的 JSON 文件
-            log.info(`当前进程ID: ${process.pid}`)
-            const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
-            const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
-            const testResults = await executeCommands(
-                projPath,
-                command,
-                testIdentifiers,
-                jsonName,
-                attachmentsPath,
-            );
+        if (fileMode) {
+            // fileMode: 直接运行文件，不解析具体测试用例
+            log.info("TESTSOLAR_TTP_FILEMODE is set, running files directly");
             
-            const results = createTestResults(testResults, testIdentifiers);
-            for (const result of results) {
-                await reporter.reportTestResult(result);
+            // 按照文件对用例进行分组，但在fileMode下每个文件运行所有测试
+            const caseLists = groupTestCasesByPath(newSelectors);
+          
+            // 对每个文件生成命令行
+            for (const [casePath, testcases] of Object.entries(caseLists)) {
+                // 上报用例运行状态
+                createRunningTestResults(casePath, testcases, reporter);
+            
+                // 执行命令并解析用例生成的 JSON 文件
+                log.info(`当前进程ID: ${process.pid}`)
+                const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
+                // 在fileMode下，只运行文件，不指定具体测试用例
+                const { command, testIdentifiers } = generateCommands(casePath, [], jsonName);
+                const testResults = await executeCommands(
+                    projPath,
+                    command,
+                    [casePath], // 在fileMode下，使用文件路径作为标识符
+                    jsonName,
+                    attachmentsPath,
+                );
+                
+                const results = createTestResults(testResults, [casePath]);
+                for (const result of results) {
+                    await reporter.reportTestResult(result);
+                }
+            }
+        } else {
+            // 按照文件对用例进行分组
+            const caseLists = groupTestCasesByPath(newSelectors);
+          
+            // 对每个文件生成命令行
+            for (const [casePath, testcases] of Object.entries(caseLists)) {
+                // 上报用例运行状态
+                createRunningTestResults(casePath, testcases, reporter);
+            
+                // 执行命令并解析用例生成的 JSON 文件
+                log.info(`当前进程ID: ${process.pid}`)
+                const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
+                const { command, testIdentifiers } = generateCommands(casePath, testcases, jsonName);
+                const testResults = await executeCommands(
+                    projPath,
+                    command,
+                    testIdentifiers,
+                    jsonName,
+                    attachmentsPath,
+                );
+                
+                const results = createTestResults(testResults, testIdentifiers);
+                for (const result of results) {
+                    await reporter.reportTestResult(result);
+                }
             }
         }
     }

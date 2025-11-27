@@ -871,6 +871,45 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
   }
 }
 
+// 扫描目录中的Playwright测试文件（排除node_modules）
+export function scanPlaywrightTestFiles(directory: string): string[] {
+  const testCases: string[] = [];
+  // 匹配Playwright测试文件的模式
+  const testPattern = /test\(['"`]/;
+
+  function readDirRecursive(dir: string) {
+    // 如果路径中包含node_modules，则跳过该目录
+    if (dir.includes("node_modules")) {
+      return;
+    }
+
+    try {
+      const files = fs.readdirSync(dir);
+
+      files.forEach((file) => {
+        const fullPath = path.join(dir, file);
+        const stat = fs.statSync(fullPath);
+
+        if (stat.isDirectory()) {
+          readDirRecursive(fullPath);
+        } else if (file.endsWith(".spec.js") || file.endsWith(".spec.ts") || 
+                   file.endsWith(".test.js") || file.endsWith(".test.ts") ||
+                   file.endsWith(".e2e.js") || file.endsWith(".e2e.ts")) {
+          const content = fs.readFileSync(fullPath, "utf-8");
+          if (testPattern.test(content)) {
+            testCases.push(fullPath);
+          }
+        }
+      });
+    } catch (error) {
+      console.error(`Error reading directory ${dir}:`, error);
+    }
+  }
+
+  readDirRecursive(directory);
+  return testCases;
+}
+
 export async function createRunningTestResults(
   path: string,
   names: string[],

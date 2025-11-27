@@ -7,6 +7,7 @@ import {
   filterTestcases,
   getTestcasePrefix,
   parsePlaywrightReport,
+  scanPlaywrightTestFiles,
 } from "./utils";
 
 import {
@@ -38,24 +39,35 @@ export async function collectTestCases(
     }
     const filePath = path.join(projPath, "load.json");
 
+    // 默认false
+    const fileMode = !!process.env.TESTSOLAR_TTP_FILEMODE;
 
-    // 执行命令获取output.json文件内容
-    const command = `npx playwright test --list --reporter=json > ${filePath}`;
-    log.info("Run Command: ", command);
-    const { stdout, stderr } = await executeCommand(command);
-    log.info("stdout:", stdout);
-    log.info("stderr:", stderr);
+    let loadCaseResult;
+    if (fileMode) {
+      log.info("TESTSOLAR_TTP_FILEMODE is set, using file paths directly without parsing");
+      // 扫描Playwright测试文件
+      loadCaseResult = scanPlaywrightTestFiles(projPath);
+    } else {
+      // 如果环境变量未设置，则按原来的方式解析用例
+      // 执行命令获取output.json文件内容
+      const command = `npx playwright test --list --reporter=json > ${filePath}`;
+      log.info("Run Command: ", command);
+      const { stdout, stderr } = await executeCommand(command);
+      log.info("stdout:", stdout);
+      log.info("stderr:", stderr);
 
-    //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    const testData = JSON.parse(fileContent);
+      //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      const testData = JSON.parse(fileContent);
 
-    // 解析所有用例
-    const loadCaseResult = parseTestcase(projPath, testData);
+      // 解析所有用例
+      loadCaseResult = parseTestcase(projPath, testData);
+    }
     log.info("PlayWright testtool parse all testcases: \n", loadCaseResult);
 
     // 如果用例为空，则通过解析json来获取错误信息
-    if (loadCaseResult.length === 0) {
+    if (loadCaseResult.length === 0 && !fileMode) {
+      const fileContent = fs.readFileSync(filePath, "utf-8");
       const errors = parsePlaywrightReport(fileContent);
       result.LoadErrors.push(...errors); // 使用LoadResult中定义的属性名
     }
@@ -85,8 +97,15 @@ export async function collectTestCases(
 
     // 提取用例数据
     filterResult.forEach((filteredTestCase: string) => {
-      const [path, descAndName] = filteredTestCase.split("?");
-      const test = new TestCase(`${testcasePrefix}${path}?${descAndName}`, {});
+      let test;
+      if (fileMode) {
+        // 去掉前缀 projectPath，获取相对路径
+        const relativePath = path.relative(projPath, filteredTestCase);
+        test = new TestCase(`${testcasePrefix}${relativePath}`, {});
+      } else {
+        const [path, descAndName] = filteredTestCase.split("?");
+        test = new TestCase(`${testcasePrefix}${path}?${descAndName}`, {});
+      }
       result.Tests.push(test);
     });
   } catch (error: unknown) {
