@@ -722,6 +722,9 @@ export function createTestResults(
   const testResults: TestResult[] = [];
   const casePrefix = getTestcasePrefix();
   
+  // 检查是否为 fileMode
+  const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
+  
   // 首先找出参考失败用例（output中的key不在testIdentifiers中的）
   let referenceFailedTest: TestResult | null = null;
   
@@ -731,7 +734,14 @@ export function createTestResults(
     const fullTestPath = `${casePrefix}${testCase}`;
     
     // 判断当前测试用例是否在testIdentifiers中
-    const isInTestIdentifiers = testIdentifiers.includes(testCase);
+    let isInTestIdentifiers = testIdentifiers.includes(testCase);
+    
+    // 在 fileMode 下，需要检查测试用例是否属于指定的文件
+    if (fileMode && !isInTestIdentifiers) {
+      // 提取测试用例的文件路径部分（问号之前的部分）
+      const testFilePath = testCase.split('?')[0];
+      isInTestIdentifiers = testIdentifiers.includes(testFilePath);
+    }
     
     // 处理每个结果
     for (const result of results) {
