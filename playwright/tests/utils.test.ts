@@ -110,7 +110,7 @@ describe("isFileOrDirectory", () => {
     expect(result).toBe(-1);
   }, 10000);
 
-  test("should r置超时时eturn 0 for neither file nor directory", async () => {
+  test("should return 0 for neither file nor directory", async () => {
     log.info("Testing unknown path...");
     const testUnknown = path.join(__dirname, "unknown");
     const result = isFileOrDirectory(testUnknown);
