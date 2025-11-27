@@ -112,7 +112,9 @@ export async function runTestCase(runParamFile: string): Promise<void> {
                 log.info(`当前进程ID: ${process.pid}`)
                 const jsonName = casePath.replace(/\//g, "_") + "_pid_" + process.pid + ".json";
                 // 在fileMode下，只运行文件，不指定具体测试用例
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { command, testIdentifiers } = generateCommands(casePath, [], jsonName);
+                // 注意：在fileMode下，testIdentifiers不会被使用，但仍需要解构以保持函数接口一致性
                 const testResults = await executeCommands(
                     projPath,
                     command,
