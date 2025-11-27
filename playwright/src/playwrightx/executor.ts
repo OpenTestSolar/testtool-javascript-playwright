@@ -23,7 +23,7 @@ export async function runTestCase(runParamFile: string): Promise<void> {
     const taskId = data.TaskId;
 
     // 默认true， 有值则为false
-    const fileMode = !!process.env.TESTSOLAR_TTP_FILEMODE;
+    const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
   
     // 创建附件目录
     const attachmentsPath = path.join(projPath, "attachments");

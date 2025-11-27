@@ -40,7 +40,7 @@ export async function collectTestCases(
     const filePath = path.join(projPath, "load.json");
 
     // 默认false
-    const fileMode = !!process.env.TESTSOLAR_TTP_FILEMODE;
+    const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
 
     let loadCaseResult;
     if (fileMode) {

@@ -371,9 +371,12 @@ export function generateCommands(
   const hash = createHash('md5').update(input).digest('hex').substring(0, 10);
   const outputOption = `--output=test-results-${hash}`;
   
-  // 获取 grep 模式
+  // 检查是否为 fileMode
+  const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
+  
+  // 获取 grep 模式（在 fileMode 下不使用 grep）
   let grepPattern = "";
-  if (testCases.length > 0) {
+  if (testCases.length > 0 && !fileMode) {
     grepPattern = `--grep="${decodeURIComponent(testCases.join("|"))}"`;
   }
 
@@ -382,14 +385,24 @@ export function generateCommands(
   if (useEnvJsonFile) {
     // 使用环境变量设置 JSON 输出
     if (testCases.length === 0) {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      // 在 fileMode 下，即使没有具体测试用例，也要指定文件路径
+      if (fileMode) {
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      } else {
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      }
     } else {
       command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
     }
   } else {
     // 使用原始的重定向方式
     if (testCases.length === 0) {
-      command = `npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
+      // 在 fileMode 下，即使没有具体测试用例，也要指定文件路径
+      if (fileMode) {
+        command = `npx playwright test ${casePath} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
+      } else {
+        command = `npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
+      }
     } else {
       command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
     }
