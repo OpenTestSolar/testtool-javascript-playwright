@@ -1,6 +1,6 @@
 {
   "name": "testsolar-oss-playwright",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "description": "TestSolar support for playwright tool",
   "main": "main.js",
   "scripts": {
