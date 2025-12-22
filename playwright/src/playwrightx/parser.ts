@@ -29,6 +29,20 @@ export async function collectTestCases(
   const result = new LoadResult(test, loadError);
 
   try {
+    // 检查是否启用 RUN_ALL_CASES 模式
+    const runAllCases = process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "1" || 
+                       process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "true";
+    
+    if (runAllCases) {
+      log.info("[Load] 执行一条命令运行当前项目的所有用例");
+      // 直接透传用例名称，不解析
+      testSelectors.forEach((selector: string) => {
+        const testCase = new TestCase(selector, {});
+        result.Tests.push(testCase);
+      });
+      return result;
+    }
+
     // 进入projPath目录
     process.chdir(projPath);
     log.info(`Current directory: ${process.cwd()}`);
