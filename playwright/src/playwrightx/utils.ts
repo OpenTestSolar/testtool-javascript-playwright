@@ -356,7 +356,9 @@ export function generateCommands(
   
   // 默认启用环境变量JSON文件，除非明确设置为"0"才禁用
   const useEnvJsonFile = process.env.TESTSOLAR_TTP_ENVJSONFILE !== "0";
-  
+  const runAllCases = process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "1" || 
+                    process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "true";
+
   // 默认启用trace，只有当明确设置TESTSOLAR_TTP_TRACE为"0"时才关闭
   const disableTrace = process.env.TESTSOLAR_TTP_TRACE === "0";
   const traceOption = disableTrace ? "--trace off" : "--trace on";
@@ -376,7 +378,7 @@ export function generateCommands(
   
   // 获取 grep 模式（在 fileMode 下不使用 grep）
   let grepPattern = "";
-  if (testCases.length > 0 && !fileMode) {
+  if (testCases.length > 0 && !fileMode && !runAllCases) {
     grepPattern = `--grep="${decodeURIComponent(testCases.join("|"))}"`;
   }
 
@@ -392,7 +394,11 @@ export function generateCommands(
         command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
       }
     } else {
-      command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      if (runAllCases) {
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ./${casePath}/ --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      } else {
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      }
     }
   } else {
     // 使用原始的重定向方式
@@ -404,7 +410,11 @@ export function generateCommands(
         command = `npx playwright test --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
       }
     } else {
-      command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
+      if (runAllCases) {
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ./${casePath}/ --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+      } else {
+        command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
+      }
     }
   }
 
@@ -724,6 +734,8 @@ export function createTestResults(
   
   // 检查是否为 fileMode
   const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
+  const runAllCases = process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "1" || 
+                      process.env.TESTSOLAR_TTP_RUNALLCASES?.toLowerCase() === "true";
   
   // 首先找出参考失败用例（output中的key不在testIdentifiers中的）
   let referenceFailedTest: TestResult | null = null;
@@ -741,6 +753,10 @@ export function createTestResults(
       // 提取测试用例的文件路径部分（问号之前的部分）
       const testFilePath = testCase.split('?')[0];
       isInTestIdentifiers = testIdentifiers.includes(testFilePath);
+    }
+
+    if (runAllCases && !isInTestIdentifiers) {
+      isInTestIdentifiers = true;
     }
     
     // 处理每个结果
