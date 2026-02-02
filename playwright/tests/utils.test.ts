@@ -24,6 +24,7 @@ import {
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
+import { Attachment, AttachmentType } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
 
 describe("parsePlaywrightReport", () => {  // 更改为与测试函数名称一致
@@ -404,7 +405,9 @@ describe("parseJsonContent", () => {
           projectID: "proj1",
           result: "passed",
           startTime: 1672531200,
-          attachments: [],
+          attachments: [
+            new Attachment("test-failed-1.png", "/root/work/123test/js_project/test-results/test-1-test-chromium/test-failed-1.png", AttachmentType.FILE),
+          ],
         },
       ]
     });
@@ -417,7 +420,20 @@ describe("parseJsonFile", () => {
     const jsonName = "tests/results.json";
     const result = parseJsonFile(projPath, jsonName, []);
     const expectedResults = {
-      "/project/spec1.js?Suite 1 Spec 1": [],
+      "/project/spec1.js?Suite 1 Spec 1": [
+        {
+          projectID: "proj1",
+          result: "passed",
+          duration: 1,
+          startTime: 1672531200,
+          endTime: 1672531201,
+          message: "",
+          content: "\n==== 标准输出 ====\n增加日志展示\n进入百度页面\n点击输入框\n输入playwright\n点击百度一下\n等待弹出页面\n点击百度翻译\n",
+          owner: null,
+          description: null,
+          attachments: [],
+        },
+      ],
     };
     expect(result).toEqual(expectedResults);
   });
