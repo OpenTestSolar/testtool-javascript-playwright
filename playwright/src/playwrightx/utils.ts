@@ -531,22 +531,21 @@ export function parseJsonContent(
                   for (const error of result.errors) {
                     specErrorCtx += error.message + "\n";
                   }
+                }
 
 
                 // 处理附件
                 const testcaseAttachments: Attachment[] = [];
                 if (result.attachments && result.attachments.length > 0) {
-                  console.log(`发现 attachments 数量: ${result.attachments.length}`);
-                  
                   // 直接使用系统临时目录
                   const targetDir = os.tmpdir();
-                  console.log(`使用系统临时目录: ${targetDir}`);
                 
                   for (const attachment of result.attachments) {
                     const attachmentName = attachment.name;
                     const attachmentPath = attachment.path;
+                    const contentType = attachment.contentType || "";
                     
-                    if (["screenshot", "video", "trace"].includes(attachmentName) && attachmentPath) {
+                    if ((["screenshot", "video", "trace"].includes(attachmentName) || contentType.startsWith("image/")) && attachmentPath) {
                       try {
                         // 获取原始文件名和扩展名
                         const originalName = path.basename(attachmentPath);
@@ -560,15 +559,19 @@ export function parseJsonContent(
                         // 构建新的文件路径
                         const newPath = path.join(targetDir, fileName);
                         
-                        // 复制文件到临时目录
-                        fs.copyFileSync(attachmentPath, newPath);
-                        
-                        // 使用新的文件路径创建 Attachment 对象
-                        testcaseAttachments.push(
-                          new Attachment(fileName, newPath, AttachmentType.FILE)
-                        );
-                        
-                        console.log(`成功复制文件 ${fileName} 到 ${newPath}`);
+                        // 检查源文件是否存在
+                        if (fs.existsSync(attachmentPath)) {
+                          // 复制文件到临时目录
+                          fs.copyFileSync(attachmentPath, newPath);
+                          testcaseAttachments.push(
+                            new Attachment(fileName, newPath, AttachmentType.FILE)
+                          );
+                        } else {
+                          // 源文件不存在，使用原路径
+                          testcaseAttachments.push(
+                            new Attachment(originalName, attachmentPath, AttachmentType.FILE)
+                          );
+                        }
                       } catch (error) {
                         const message = error instanceof Error ? error.message : "Unknown error";
                         log.error(`复制文件 ${attachmentPath} 失败: ${message}`);
@@ -577,19 +580,18 @@ export function parseJsonContent(
                   }
                 }
                 
-                  specResult = {
-                    projectID: specProjectId,
-                    result: result.status,
-                    duration: duration,
-                    startTime: specStartTime,
-                    endTime: specEndTime,
-                    message: specErrorMsg,
-                    content: specErrorCtx, // 现在包含错误、stdout和stderr
-                    owner: owner,
-                    description: description,
-                    attachments: testcaseAttachments,
-                  };
-                }
+                specResult = {
+                  projectID: specProjectId,
+                  result: result.status,
+                  duration: duration,
+                  startTime: specStartTime,
+                  endTime: specEndTime,
+                  message: specErrorMsg,
+                  content: specErrorCtx, // 现在包含错误、stdout和stderr
+                  owner: owner,
+                  description: description,
+                  attachments: testcaseAttachments,
+                };
               }
             }
 
