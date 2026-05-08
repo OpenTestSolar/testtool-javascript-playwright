@@ -520,12 +520,17 @@ export function parseJsonContent(
                   }
                 }
 
-                // 处理错误信息
+                // 处理错误信息：仅在明确失败状态（failed/timedOut/interrupted）下追加"错误信息"标题，
+                // 避免 skipped 等非失败状态被误标记为错误。
                 if (result.errors) {
                   log.info(
                     `发现 errors。errors 数量: ${result.errors.length}`,
                   );
-                  if (result.status !== "passed") {
+                  const failedStatuses = ["failed", "timedout", "interrupted"];
+                  const isFailedStatus = failedStatuses.includes(
+                    (result.status || "").toLowerCase(),
+                  );
+                  if (isFailedStatus) {
                     specErrorCtx += "\n==== 错误信息 ====\n";
                   }
                   for (const error of result.errors) {
@@ -727,6 +732,33 @@ export function groupTestCasesByPath(
   return groupedTestCases;
 }
 
+// Playwright 原生状态 → TestSolar ResultType 的映射关系
+// Playwright 官方状态取值：'passed' | 'failed' | 'timedOut' | 'skipped' | 'interrupted'
+// 其中 'skipped' 必须映射为 IGNORED，避免与 FAILED 混淆；
+// 'timedOut' / 'interrupted' 归为 FAILED；其余未知状态按 UNKNOWN 处理以便定位问题。
+export function mapPlaywrightStatus(status: string | undefined | null): ResultType {
+  switch ((status || "").toLowerCase()) {
+    case "passed":
+      return ResultType.SUCCEED;
+    case "skipped":
+      return ResultType.IGNORED;
+    case "failed":
+    case "timedout":
+    case "interrupted":
+      return ResultType.FAILED;
+    default:
+      return ResultType.UNKNOWN;
+  }
+}
+
+// 根据 ResultType 获取对应的日志等级，跳过/未知场景不使用 ERROR 以避免误判为失败
+export function getLogLevelByResultType(resultType: ResultType): LogLevel {
+  if (resultType === ResultType.FAILED) {
+    return LogLevel.ERROR;
+  }
+  return LogLevel.INFO;
+}
+
 export function createTestResults(
   output: Record<string, SpecResult[]>,
   testIdentifiers: string[],
@@ -768,14 +800,14 @@ export function createTestResults(
       
       const startTime = new Date(result.startTime * 1000).toISOString();
       const endTime = new Date(result.endTime * 1000).toISOString();
-      const resultType = result.result === "passed" ? ResultType.SUCCEED : ResultType.FAILED;
+      const resultType = mapPlaywrightStatus(result.result);
       const message = result.message || "";
       const content = result.content || "";
       const attachments = result.attachments || [];
 
       const testLog = new TestCaseLog(
         startTime,
-        result.result === "passed" ? LogLevel.INFO : LogLevel.ERROR,
+        getLogLevelByResultType(resultType),
         content,
         attachments,
         undefined,

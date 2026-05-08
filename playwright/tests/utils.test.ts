@@ -19,12 +19,14 @@ import {
   parsePlaywrightReport,
   encodeQueryParams,
   createRunningTestResults,
+  mapPlaywrightStatus,
+  getLogLevelByResultType,
 } from "../src/playwrightx/utils";
 
 import * as path from "path";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
-import { Attachment, AttachmentType } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
+import { Attachment, AttachmentType, ResultType, LogLevel } from "testsolar-oss-sdk/src/testsolar_sdk/model/testresult";
 
 
 describe("parsePlaywrightReport", () => {  // 更改为与测试函数名称一致
@@ -617,5 +619,254 @@ describe("createRunningTestResults", () => {
     
     // 验证结果
     expect(TestCase).toHaveBeenCalledTimes(0);
+  });
+});
+
+/**
+ * TAPD: playwright-错误信息中区分 skipped 状态和 failed 状态
+ * https://tapd.woa.com/tapd_fe/69995517/story/detail/1069995517134057272
+ *
+ * 测试目标：验证 Playwright 原生状态到 TestSolar ResultType 的正确映射，
+ * 确保 skipped 用例不会被误判为 failed。
+ */
+describe("mapPlaywrightStatus", () => {
+  describe("1. 核心功能测试", () => {
+    test("场景1: passed 状态映射为 SUCCEED", () => {
+      expect(mapPlaywrightStatus("passed")).toBe(ResultType.SUCCEED);
+    });
+
+    test("场景2: skipped 状态映射为 IGNORED（关键修复点）", () => {
+      expect(mapPlaywrightStatus("skipped")).toBe(ResultType.IGNORED);
+    });
+
+    test("场景3: failed 状态映射为 FAILED", () => {
+      expect(mapPlaywrightStatus("failed")).toBe(ResultType.FAILED);
+    });
+
+    test("场景4: timedOut 状态映射为 FAILED", () => {
+      expect(mapPlaywrightStatus("timedOut")).toBe(ResultType.FAILED);
+    });
+
+    test("场景5: interrupted 状态映射为 FAILED", () => {
+      expect(mapPlaywrightStatus("interrupted")).toBe(ResultType.FAILED);
+    });
+  });
+
+  describe("2. 边界条件测试", () => {
+    test("场景1: 大小写不敏感 - PASSED", () => {
+      expect(mapPlaywrightStatus("PASSED")).toBe(ResultType.SUCCEED);
+    });
+
+    test("场景2: 大小写不敏感 - Skipped", () => {
+      expect(mapPlaywrightStatus("Skipped")).toBe(ResultType.IGNORED);
+    });
+
+    test("场景3: 空字符串映射为 UNKNOWN", () => {
+      expect(mapPlaywrightStatus("")).toBe(ResultType.UNKNOWN);
+    });
+
+    test("场景4: null/undefined 映射为 UNKNOWN", () => {
+      expect(mapPlaywrightStatus(null)).toBe(ResultType.UNKNOWN);
+      expect(mapPlaywrightStatus(undefined)).toBe(ResultType.UNKNOWN);
+    });
+
+    test("场景5: 未知状态映射为 UNKNOWN", () => {
+      expect(mapPlaywrightStatus("weirdStatus")).toBe(ResultType.UNKNOWN);
+    });
+  });
+});
+
+describe("getLogLevelByResultType", () => {
+  test("场景1: FAILED 对应 ERROR 日志等级", () => {
+    expect(getLogLevelByResultType(ResultType.FAILED)).toBe(LogLevel.ERROR);
+  });
+
+  test("场景2: SUCCEED 对应 INFO 日志等级", () => {
+    expect(getLogLevelByResultType(ResultType.SUCCEED)).toBe(LogLevel.INFO);
+  });
+
+  test("场景3: IGNORED 对应 INFO 日志等级（避免 skipped 被误标为错误）", () => {
+    expect(getLogLevelByResultType(ResultType.IGNORED)).toBe(LogLevel.INFO);
+  });
+
+  test("场景4: UNKNOWN 对应 INFO 日志等级", () => {
+    expect(getLogLevelByResultType(ResultType.UNKNOWN)).toBe(LogLevel.INFO);
+  });
+});
+
+describe("createTestResults - 区分 skipped 与 failed", () => {
+  test("场景1: skipped 用例最终 ResultType 为 IGNORED", () => {
+    const output = {
+      "path/to/skipped": [
+        {
+          projectID: "proj1",
+          result: "skipped",
+          duration: 0,
+          startTime: 1610000000,
+          endTime: 1610000000,
+          message: "",
+          content: "test skipped",
+          owner: "amb",
+          description: "",
+          attachments: [],
+        },
+      ],
+    };
+    const tests = ["path/to/skipped"];
+    const testResults = createTestResults(output, tests);
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].ResultType).toBe(ResultType.IGNORED);
+  });
+
+  test("场景2: failed 用例最终 ResultType 为 FAILED", () => {
+    const output = {
+      "path/to/failed": [
+        {
+          projectID: "proj1",
+          result: "failed",
+          duration: 1,
+          startTime: 1610000000,
+          endTime: 1610000001,
+          message: "assertion failed",
+          content: "stack trace",
+          owner: "amb",
+          description: "",
+          attachments: [],
+        },
+      ],
+    };
+    const tests = ["path/to/failed"];
+    const testResults = createTestResults(output, tests);
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].ResultType).toBe(ResultType.FAILED);
+  });
+
+  test("场景3: skipped 用例不会被用作参考失败用例（不会把其它 identifier 误报为 FAILED）", () => {
+    // output 中只有一个 skipped 用例（不在 testIdentifiers 中）
+    const output = {
+      "other/skipped/case": [
+        {
+          projectID: "proj1",
+          result: "skipped",
+          duration: 0,
+          startTime: 1610000000,
+          endTime: 1610000000,
+          message: "",
+          content: "",
+          owner: null,
+          description: null,
+          attachments: [],
+        },
+      ],
+    };
+    // testIdentifiers 中的 identifier 不在 output 里
+    const tests = ["requested/case"];
+    const testResults = createTestResults(output, tests);
+    // 由于 output 中的用例是 skipped（而非 failed），不应成为参考失败用例，
+    // 因此不会为 requested/case 生成兜底的 FAILED 结果
+    expect(testResults).toHaveLength(0);
+  });
+
+  test("场景4: timedOut 用例最终 ResultType 为 FAILED", () => {
+    const output = {
+      "path/to/timeout": [
+        {
+          projectID: "proj1",
+          result: "timedOut",
+          duration: 30,
+          startTime: 1610000000,
+          endTime: 1610000030,
+          message: "test timed out",
+          content: "",
+          owner: null,
+          description: null,
+          attachments: [],
+        },
+      ],
+    };
+    const tests = ["path/to/timeout"];
+    const testResults = createTestResults(output, tests);
+    expect(testResults).toHaveLength(1);
+    expect(testResults[0].ResultType).toBe(ResultType.FAILED);
+  });
+});
+
+describe("parseJsonContent - skipped 状态不追加'错误信息'标题", () => {
+  test("场景1: skipped 状态下即使存在 errors，也不追加'错误信息'标题", () => {
+    const projPath = "/project";
+    const data = {
+      config: { rootDir: "/project/tests" },
+      suites: [
+        {
+          title: "Suite 1",
+          file: "suite1.js",
+          specs: [
+            {
+              title: "Spec 1",
+              file: "spec1.js",
+              tests: [
+                {
+                  annotations: [],
+                  projectId: "proj1",
+                  results: [
+                    {
+                      startTime: "2023-01-01T00:00:00Z",
+                      duration: 0,
+                      status: "skipped",
+                      errors: [{ message: "residual error" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = parseJsonContent(projPath, data);
+    const key = "tests/spec1.js?Suite 1 Spec 1";
+    expect(result[key]).toBeDefined();
+    expect(result[key][0].result).toBe("skipped");
+    // 不应出现"==== 错误信息 ===="
+    expect(result[key][0].content).not.toContain("==== 错误信息 ====");
+  });
+
+  test("场景2: failed 状态下仍正常追加'错误信息'标题", () => {
+    const projPath = "/project";
+    const data = {
+      config: { rootDir: "/project/tests" },
+      suites: [
+        {
+          title: "Suite 1",
+          file: "suite1.js",
+          specs: [
+            {
+              title: "Spec 1",
+              file: "spec1.js",
+              tests: [
+                {
+                  annotations: [],
+                  projectId: "proj1",
+                  results: [
+                    {
+                      startTime: "2023-01-01T00:00:00Z",
+                      duration: 1,
+                      status: "failed",
+                      errors: [{ message: "real error" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = parseJsonContent(projPath, data);
+    const key = "tests/spec1.js?Suite 1 Spec 1";
+    expect(result[key]).toBeDefined();
+    expect(result[key][0].result).toBe("failed");
+    expect(result[key][0].content).toContain("==== 错误信息 ====");
+    expect(result[key][0].content).toContain("real error");
   });
 });
