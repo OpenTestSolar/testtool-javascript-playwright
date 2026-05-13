@@ -49,7 +49,7 @@ jobs:
           pnpm run build
       - run: |
           cd playwright
-          pnpm publish --no-git-checks --provenance
+          npm publish --provenance --access public
 
   publish-metadata:
     needs: publish-npm
