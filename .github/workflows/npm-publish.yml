@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,9 +49,7 @@ jobs:
           pnpm run build
       - run: |
           cd playwright
-          pnpm publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          pnpm publish --no-git-checks --provenance
 
   publish-metadata:
     needs: publish-npm
