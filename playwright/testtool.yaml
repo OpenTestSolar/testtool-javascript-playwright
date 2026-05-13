@@ -2,7 +2,7 @@ schemaVersion: 1.0
 name: playwright
 nameZh: Playwright自动化测试
 lang: javascript
-version: '0.2.29'
+version: '0.2.30'
 defaultBaseImage: node:18
 langType: INTERPRETED
 description:  |-
@@ -14,7 +14,6 @@ scaffoldRepo: https://github.com/OpenTestSolar/testtool-scaffold-playwright
 repository: https://github.com/OpenTestSolar/testtool-javascript-playwright
 gitPkgUrl: https://github.com/OpenTestSolar/testtool-javascript-playwright.git
 httpPkgUrl: https://testsolar-1321258242.cos.ap-guangzhou.myqcloud.com/testtools/javascript/playwright/metadata.json@stable
-repository: https://github.com/OpenTestSolar/testtool-javascript-playwright/tree/main/playwright
 parameterDefs: # 用户 use 这个测试工具时可以配置的 with 参数
   - name: extraArgs
     value: playwright额外参数
