@@ -255,6 +255,39 @@ describe("parseTimeStamp", () => {
     const result = parseTimeStamp(startTime, duration);
     expect(result).toEqual([1672531200, 1672531201, 1]);
   });
+
+  test("should parse UTC ISO string with milliseconds correctly", () => {
+    const startTime = "2023-01-01T00:00:00.500Z";
+    const duration = 1500;
+    const [start, end, dur] = parseTimeStamp(startTime, duration);
+    expect(start).toBeCloseTo(1672531200.5, 3);
+    expect(end).toBeCloseTo(1672531202, 3);
+    expect(dur).toBe(1.5);
+  });
+
+  test("should not double-shift when running in non-UTC timezone (no future-time bug)", () => {
+    // Playwright JSON 报告中的 startTime 已经是 UTC，
+    // 解析结果必须等于 Date.parse 的结果，而不能再被加上本地时区偏移
+    const startTime = "2025-06-15T08:30:00.000Z";
+    const duration = 0;
+    const [start] = parseTimeStamp(startTime, duration);
+    expect(start).toBe(Date.parse(startTime) / 1000);
+  });
+
+  test("should respect explicit timezone offset in ISO string", () => {
+    // 带 +08:00 偏移的 ISO 字符串等价于对应的 UTC 时间
+    const startTime = "2023-01-01T08:00:00+08:00";
+    const [start] = parseTimeStamp(startTime, 0);
+    expect(start).toBe(1672531200);
+  });
+
+  test("should fall back gracefully on invalid startTime", () => {
+    const [start, end, dur] = parseTimeStamp("not-a-date", 2000);
+    expect(Number.isFinite(start)).toBe(true);
+    expect(Number.isFinite(end)).toBe(true);
+    expect(dur).toBe(2);
+    expect(end - start).toBeCloseTo(2, 3);
+  });
 });
 
 describe("parseJsonContent", () => {
