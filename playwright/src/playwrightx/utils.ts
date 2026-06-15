@@ -495,6 +495,7 @@ export function parseJsonContent(
 
               const results = test.results;
               const specProjectId = test.projectId;
+              log.info(`原始测试用例结果: ${results}`);
               for (const result of results) {
                 const [specStartTime, specEndTime, duration] = parseTimeStamp(
                   result.startTime,
