@@ -1,6 +1,6 @@
 {
   "name": "testsolar-oss-playwright",
-  "version": "0.2.31",
+  "version": "0.2.32",
   "description": "TestSolar support for playwright tool",
   "main": "main.js",
   "scripts": {
@@ -19,8 +19,6 @@
   "dependencies": {
     "@playwright/test": "^1.39.0",
     "crypto-js": "^4.2.0",
-    "date-fns": "^2.30.0",
-    "date-fns-tz": "^2.0.0",
     "fs-extra": "^11.2.0",
     "loglevel": "^1.9.2",
     "loglevel-plugin-prefix": "^0.8.4",

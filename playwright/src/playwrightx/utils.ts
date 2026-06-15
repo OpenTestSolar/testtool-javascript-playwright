@@ -5,8 +5,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { createHash } from 'crypto';
-import { parseISO, addMilliseconds } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
 import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 import log from 'testsolar-oss-sdk/src/testsolar_sdk/logger';
 import {
@@ -432,16 +430,19 @@ export function handlePath(projPath: string, filePath: string): string {
   return filePath.replace(`${projPath}/`, "");
 }
 
-// 解析时间戳，返回开始时间、结束时间和持续时间
+// 解析时间戳，返回开始时间、结束时间和持续时间// 直接用 Date 构造函数解析即可，不要再做时区换算，否则在非 UTC 机器上会出现"未来时间"。
 export function parseTimeStamp(
   startTime: string,
   duration: number,
 ): [number, number, number] {
-  const startDate = zonedTimeToUtc(parseISO(startTime), "UTC");
-  const endDate = addMilliseconds(startDate, duration);
-  const startTimestamp = startDate.getTime() / 1000;
-  const endTimestamp = endDate.getTime() / 1000;
-  return [startTimestamp, endTimestamp, duration / 1000];
+  const startMs = new Date(startTime).getTime();
+  if (Number.isNaN(startMs)) {
+    log.error(`parseTimeStamp 解析失败，startTime=${startTime}，回退使用当前时间`);
+    const fallback = Date.now();
+    return [fallback / 1000, (fallback + duration) / 1000, duration / 1000];
+  }
+  const endMs = startMs + duration;
+  return [startMs / 1000, endMs / 1000, duration / 1000];
 }
 
 // 解析 JSON 内容并返回用例结果
