@@ -64,6 +64,6 @@ jobs:
           git config --global user.name 'asiazhang'
           git config --global user.email 'asiazhang2002@gmail.com'
           pip install solar-registry
-          solar-registry pull-request playwright
+          solar-registry pull-request playwright --force
         env:
           GH_TOKEN: ${{ secrets.TESTSOLAR_TOKEN }}
