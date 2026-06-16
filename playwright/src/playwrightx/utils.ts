@@ -430,19 +430,63 @@ export function handlePath(projPath: string, filePath: string): string {
   return filePath.replace(`${projPath}/`, "");
 }
 
-// 解析时间戳，返回开始时间、结束时间和持续时间// 直接用 Date 构造函数解析即可，不要再做时区换算，否则在非 UTC 机器上会出现"未来时间"。
+// 解析时间戳，返回 [startSec, endSec, durationSec]，单位均为秒（保留毫秒小数）。
+//
+// 输入：Playwright JSON reporter 写出的 startTime 字符串。Playwright 内部固定
+// 调用 `Date.prototype.toISOString()` 生成它，**正常情况下都带 'Z' 后缀**
+// （详见 playwright/lib/runner/index.js: `startTime: result.startTime.toISOString()`）。
+//
+// 解析策略：严格遵循 ECMAScript Date 规范，不再做"无后缀强制 UTC"的兜底——
+// 上一版那个兜底在线上反而引入了反向偏移：若 Playwright 跑在东八区且导出的是
+// 本地墙钟字符串（带或不带 Z），强制按 UTC 解析会让上报时间领先真实 UTC 8h。
+//
+// 各种字符串行为（在东八区机器上）：
+//   "2026-06-15T10:04:49Z"          → UTC 10:04           ✅
+//   "2026-06-15T18:04:49+08:00"     → UTC 10:04           ✅
+//   "2026-06-15T18:04:49"           → 按本地解析 → UTC 10:04 ✅（东八区）
+//   "2026-06-15T18:04:49Z"  ← 带错 Z → UTC 18:04 ❌ 比真实领先 8h
+//
+// 最后一种是"上游字符串本身就有 bug"，单凭这里没法自动纠正。
+// 提供一个应急环境变量 TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN：
+//   - 单位分钟，正负皆可（如 "-480" 表示把解析出的 UTC 时间再 -8h）
+//   - 仅在确认上游字符串带错时才设置，默认不启用，对正常数据零影响
+//
+// 返回值统一为秒级（带毫秒小数），保持与下游 `result.startTime * 1000` 调用一致。
 export function parseTimeStamp(
   startTime: string,
   duration: number,
 ): [number, number, number] {
-  const startMs = new Date(startTime).getTime();
-  if (Number.isNaN(startMs)) {
+  const rawMs = new Date(startTime).getTime();
+  if (Number.isNaN(rawMs)) {
     log.error(`parseTimeStamp 解析失败，startTime=${startTime}，回退使用当前时间`);
     const fallback = Date.now();
     return [fallback / 1000, (fallback + duration) / 1000, duration / 1000];
   }
+
+  // 应急偏移修正：仅当显式设置环境变量时生效，便于线下定位 / 应急止血。
+  const offsetMs = readReportTzOffsetMs();
+  const startMs = rawMs + offsetMs;
+
+  if (offsetMs !== 0) {
+    log.info(
+      `parseTimeStamp 应用 TZ 偏移修正：startTime=${startTime} rawUtc=${new Date(rawMs).toISOString()} offsetMin=${offsetMs / 60000} -> ${new Date(startMs).toISOString()}`,
+    );
+  }
+
   const endMs = startMs + duration;
   return [startMs / 1000, endMs / 1000, duration / 1000];
+}
+
+// 读取应急偏移配置，单位毫秒。无效值视为 0（不修正）。
+function readReportTzOffsetMs(): number {
+  const raw = process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN;
+  if (!raw) return 0;
+  const min = Number(raw);
+  if (!Number.isFinite(min)) {
+    log.error(`TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN 不是合法数字，忽略：${raw}`);
+    return 0;
+  }
+  return min * 60 * 1000;
 }
 
 // 解析 JSON 内容并返回用例结果
@@ -495,7 +539,7 @@ export function parseJsonContent(
 
               const results = test.results;
               const specProjectId = test.projectId;
-              log.info(`原始测试用例结果: ${results}`);
+              log.info(`原始测试用例结果: ${JSON.stringify(results)}`);
               for (const result of results) {
                 const [specStartTime, specEndTime, duration] = parseTimeStamp(
                   result.startTime,
