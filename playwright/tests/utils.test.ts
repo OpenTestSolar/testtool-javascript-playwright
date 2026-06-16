@@ -288,6 +288,43 @@ describe("parseTimeStamp", () => {
     expect(dur).toBe(2);
     expect(end - start).toBeCloseTo(2, 3);
   });
+
+  // 应急偏移：当上游 reporter 把本地时间错挂 'Z' 后缀（导致上报时间领先 UTC 8h）时，
+  // 通过环境变量 TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN 显式扣除偏移，恢复真实 UTC。
+  test("should apply TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN when set", () => {
+    const original = process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN;
+    process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN = "-480"; // -8h
+    try {
+      // 上游字符串声称 UTC 18:04，但实际是北京时间 18:04（应为 UTC 10:04）
+      const [start] = parseTimeStamp("2026-06-15T18:04:49.602Z", 0);
+      expect(start).toBeCloseTo(
+        Date.parse("2026-06-15T10:04:49.602Z") / 1000,
+        3,
+      );
+    } finally {
+      if (original === undefined) {
+        delete process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN;
+      } else {
+        process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN = original;
+      }
+    }
+  });
+
+  test("should ignore TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN when value is invalid", () => {
+    const original = process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN;
+    process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN = "abc";
+    try {
+      const startTime = "2026-06-15T10:04:49.602Z";
+      const [start] = parseTimeStamp(startTime, 0);
+      expect(start).toBe(Date.parse(startTime) / 1000);
+    } finally {
+      if (original === undefined) {
+        delete process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN;
+      } else {
+        process.env.TESTSOLAR_TTP_REPORT_TZ_OFFSET_MIN = original;
+      }
+    }
+  });
 });
 
 describe("parseJsonContent", () => {
