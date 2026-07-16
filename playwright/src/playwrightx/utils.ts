@@ -99,6 +99,9 @@ interface Stats {
 }
 
 interface JsonData {
+  config?: {
+    rootDir: string;
+  };
   stats: Stats;
   suites: Suite[];
   errors: Error[];
@@ -185,16 +188,39 @@ export function parseErrorCases(
 ): Record<string, SpecResult[]> {
   const caseResults: Record<string, SpecResult[]> = {};
 
+  // 防御：jsonData 可能为 undefined/null（Playwright 在 No tests found 时不生成 JSON 文件，
+  // 导致 JSON.parse 拿到 undefined，进而传入本函数后访问 .stats 直接 crash）
+  if (!jsonData) {
+    log.error("parseErrorCases 收到空的 jsonData，用例可能未匹配到任何测试");
+    const message = "No tests found / 未找到匹配的测试用例，请检查用例名称是否正确";
+    for (const testCase of cases) {
+      caseResults[testCase] = [
+        {
+          projectID: null,
+          result: "failed",
+          duration: 0,
+          startTime: Date.now() / 1000,
+          endTime: Date.now() / 1000,
+          message: message,
+          content: message,
+          owner: null,
+          description: null,
+        },
+      ];
+    }
+    return caseResults;
+  }
+
   // 获取统计信息
-  const startTime = jsonData.stats.startTime;
-  const duration = jsonData.stats.duration;
+  const startTime = jsonData.stats?.startTime || new Date().toISOString();
+  const duration = jsonData.stats?.duration || 0;
   const [specStartTime, specEndTime, specDuration] = parseTimeStamp(
     startTime,
     duration,
   );
 
   // 检查 suites 是否为空
-  if (jsonData.suites.length === 0) {
+  if (!jsonData.suites || jsonData.suites.length === 0) {
     if (jsonData.errors.length > 0) {
       // 处理存在的错误
       for (const error of jsonData.errors) {
@@ -492,11 +518,11 @@ function readReportTzOffsetMs(): number {
 // 解析 JSON 内容并返回用例结果
 export function parseJsonContent(
   projPath: string,
-  data: Data,
+  data: { config?: { rootDir?: string }; suites?: Suite[]; errors?: Error[]; stats?: Stats },
   rootDir: string | null = null,
 ): Record<string, SpecResult[]> {
   log.info("开始解析 JSON 内容...");
-  const rootPath = data.config.rootDir || rootDir;
+  const rootPath = data.config?.rootDir || rootDir;
   log.info(`使用根路径: ${rootPath}`);
   const caseResults: Record<string, SpecResult[]> = {};
 
@@ -665,7 +691,7 @@ export function parseJsonContent(
       }
     };
   }
-  parseSuites(data.suites, rootPath);
+  parseSuites(data.suites || [], rootPath);
 
   log.info("完成 JSON 内容解析。");
   return caseResults;
@@ -680,7 +706,26 @@ export function parseJsonFile(
   log.info(
     `function parseJsonFile: ${process.env.PLAYWRIGHT_JSON_OUTPUT_NAME}`,
   );
-  const data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
+
+  // 防御：Playwright 在 "No tests found" 等场景下不会生成 JSON 结果文件
+  if (!fs.existsSync(jsonFile)) {
+    log.error(`JSON 结果文件不存在: ${jsonFile}，将作为未匹配到用例处理`);
+    return parseErrorCases(null as unknown as JsonData, cases);
+  }
+
+  let data: JsonData | null = null;
+  try {
+    data = JSON.parse(fs.readFileSync(jsonFile, "utf-8"));
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    log.error(`JSON 文件解析失败: ${jsonFile}, 错误: ${msg}`);
+    return parseErrorCases(null as unknown as JsonData, cases);
+  }
+
+  if (!data) {
+    return parseErrorCases(null as unknown as JsonData, cases);
+  }
+
   const result = parseJsonContent(projPath, data);
 
   log.info(`Parse result from json: ${JSON.stringify(result, null, 2)}`);
@@ -689,7 +734,7 @@ export function parseJsonFile(
   } else {
     // 如果 result 为空，则调用 parseErrorCases 方法
     const testErrorResults = parseErrorCases(data, cases);
-    log.info(`Parse result from error info: ${testErrorResults}`);
+    log.info(`Parse result from error info: ${JSON.stringify(testErrorResults)}`);
     return testErrorResults;
   }
 }
