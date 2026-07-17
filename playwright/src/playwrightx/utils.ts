@@ -421,7 +421,10 @@ export function generateCommands(
       }
     } else {
       if (runAllCases) {
-        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ./${casePath}/ --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+        // 注意：casePath 在此处通常是具体的 spec 文件路径（如 tests/a/b.spec.ts），
+        // 不能再拼接 "./" 前缀和结尾 "/"，否则会生成不存在的路径（如 "./tests/a/b.spec.ts/"），
+        // 导致 Playwright 无法匹配到任何测试文件而抛出 "No tests found." 错误。
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
       } else {
         command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
       }
@@ -437,7 +440,8 @@ export function generateCommands(
       }
     } else {
       if (runAllCases) {
-        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ./${casePath}/ --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
+        // 同上：不能拼接 "./" 与结尾 "/"，否则匹配不到具体的 spec 文件
+        command = `export PLAYWRIGHT_JSON_OUTPUT_NAME=${jsonName} && npx playwright test ${casePath} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs}`;
       } else {
         command = `npx playwright test ${casePath} ${grepPattern} --reporter=json ${traceOption} ${workersOption} ${outputOption} ${extraArgs} > ${jsonName}`;
       }
