@@ -221,13 +221,15 @@ export function parseErrorCases(
 
   // 检查 suites 是否为空
   if (!jsonData.suites || jsonData.suites.length === 0) {
-    if (jsonData.errors.length > 0) {
+    if (jsonData.errors && jsonData.errors.length > 0) {
       // 处理存在的错误
       for (const error of jsonData.errors) {
-        const errorMessage = error.message;
-        const errorStack = error.stack;
-        const errorLocation = `${error.location.file}:${error.location.line}:${error.location.column}`;
-        const errorSnippet = error.snippet;
+        const errorMessage = error.message || "";
+        const errorStack = error.stack || "";
+        const errorLocation = error.location
+          ? `${error.location.file}:${error.location.line}:${error.location.column}`
+          : "未知位置";
+        const errorSnippet = error.snippet || "";
 
         // 构建错误信息的结构
         const errorResult = {
@@ -521,7 +523,7 @@ export function parseJsonContent(
   data: { config?: { rootDir?: string }; suites?: Suite[]; errors?: Error[]; stats?: Stats },
   rootDir: string | null = null,
 ): Record<string, SpecResult[]> {
-  log.info("开始解析 JSON 内容...");
+  log.info("-------开始解析 JSON 内容...-------");
   const rootPath = data.config?.rootDir || rootDir;
   log.info(`使用根路径: ${rootPath}`);
   const caseResults: Record<string, SpecResult[]> = {};
