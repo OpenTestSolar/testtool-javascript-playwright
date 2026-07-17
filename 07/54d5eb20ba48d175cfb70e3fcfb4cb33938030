@@ -1,0 +1,25 @@
+playwright/src/playwrightx/utils.ts
+  s_6299633f270944::t_35e8b409720f08 224,227-232
+  h_08dfd81acc5f3e 526
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "0754d5eb20ba48d175cfb70e3fcfb4cb33938030",
+  "prompts": {},
+  "humans": {
+    "h_08dfd81acc5f3e": {
+      "author": "erickangxu <erickangxu@tencent.com>"
+    }
+  },
+  "sessions": {
+    "s_6299633f270944": {
+      "agent_id": {
+        "tool": "codebuddy",
+        "id": "0ab5e50211ba42cb94fe13f0eb873c0b",
+        "model": "deepseek-v4-pro-ioa"
+      },
+      "human_author": "erickangxu <erickangxu@tencent.com>"
+    }
+  }
+}
