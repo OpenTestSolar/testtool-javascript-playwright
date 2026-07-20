@@ -1,0 +1,14 @@
+playwright/package.json
+  h_08dfd81acc5f3e 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "2ebff4ce44cf8ef0dddcc6600b6b7d3b32243120",
+  "prompts": {},
+  "humans": {
+    "h_08dfd81acc5f3e": {
+      "author": "erickangxu <erickangxu@tencent.com>"
+    }
+  }
+}
