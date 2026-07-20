@@ -1,0 +1,20 @@
+playwright/src/playwrightx/utils.ts
+  s_6299633f270944::t_50433b6b871b78 145-152
+  s_6299633f270944::t_6d4af2d7577d16 414-418,421-424
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "af3dc9482169b4f93a65e14158a4f6a6926e1d0c",
+  "prompts": {},
+  "sessions": {
+    "s_6299633f270944": {
+      "agent_id": {
+        "tool": "codebuddy",
+        "id": "0ab5e50211ba42cb94fe13f0eb873c0b",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "erickangxu <erickangxu@tencent.com>"
+    }
+  }
+}
