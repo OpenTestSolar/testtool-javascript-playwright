@@ -150,6 +150,17 @@ export function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// 转义字符串，使其能安全嵌入到 shell 双引号 "..." 语境中而不被提前截断/破坏结构。
+// 命令最终是通过 child_process.exec（内部走系统 shell，如 sh -c "..."）执行的，
+// 若 --grep="${pattern}" 中的 pattern 本身包含双引号 "、反斜杠 \、美元符 $ 或反引号 `，
+// 这些字符在 POSIX shell 双引号语境下有特殊含义（提前结束引用、变量替换、命令替换等），
+// 会导致 shell 把命令切分成错误的参数（例如用例标题中常见的 点击"了解详情" 这种带英文引号的步骤描述），
+// 使 Playwright 收到被截断/错乱的 --grep 值，从而匹配不到任何用例，抛出 "No tests found." 错误。
+// 因此在拼接进双引号字符串前，需要对这四个字符做反斜杠转义。
+export function escapeShellDoubleQuoted(str: string): string {
+  return str.replace(/[\\$`"]/g, "\\$&");
+}
+
 export function encodeQueryParams(url: string): string {
   // 查找问号位置
   const questionMarkIndex = url.indexOf('?');
@@ -411,15 +422,19 @@ export function generateCommands(
   const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
   
   // 获取 grep 模式（在 fileMode 下不使用 grep）
-  // 注意：Playwright 会把 --grep 的值当作正则表达式（forceRegExp 内部执行 new RegExp(pattern, "gi")）。
-  // 用例标题中常见的 "(" ")" "." "*" "?" "+" "[" "]" "{" "}" "^" "$" "|" "\" 在正则中都有特殊含义，
-  // 若不转义会导致用例标题（比如带 "(60087660)" 这种 ID 后缀）无法与真实标题正确匹配，
-  // Playwright 过滤后测试数为 0，进而抛出 "No tests found." 错误。
-  // 因此这里对每个用例名单独转义正则特殊字符，再用未转义的 "|" 拼接多个用例做 OR 匹配。
+  // 注意有两层转义需要处理：
+  // 1) 正则层面：Playwright 会把 --grep 的值当作正则表达式（forceRegExp 内部执行 new RegExp(pattern, "gi")）。
+  //    用例标题中常见的 "(" ")" "." "*" "?" "+" "[" "]" "{" "}" "^" "$" "|" "\" 在正则中都有特殊含义，
+  //    若不转义会导致用例标题（比如带 "(60087660)" 这种 ID 后缀）无法与真实标题正确匹配。
+  // 2) shell 层面：command 最终通过 child_process.exec（内部走系统 shell）执行，
+  //    --grep="${pattern}" 整体处于 shell 双引号语境中，若 pattern 含有英文双引号 "
+  //    （比如用例标题里常见的 点击"了解详情" 这种步骤描述），会被 shell 当作引号边界提前截断/错乱整条命令。
+  //    因此正则转义之后，还需要再做一次 shell 双引号语境转义，才能安全拼进 --grep="..."。
+  // 两者叠加缺一，都会导致 Playwright 过滤后测试数为 0，进而抛出 "No tests found." 错误。
   let grepPattern = "";
   if (testCases.length > 0 && !fileMode && !runAllCases) {
     const escapedPattern = testCases
-      .map((testCase) => escapeRegExp(decodeURIComponent(testCase)))
+      .map((testCase) => escapeShellDoubleQuoted(escapeRegExp(decodeURIComponent(testCase))))
       .join("|");
     grepPattern = `--grep="${escapedPattern}"`;
   }
