@@ -142,6 +142,14 @@ interface PlaywrightReport {
   };
 }
 
+// 转义字符串中的正则表达式特殊字符，使其能作为字面字符串在正则中安全匹配。
+// 用于 --grep 参数：Playwright 会将该值当作正则表达式（forceRegExp），
+// 若用例标题本身包含 ()[]{}.*+?^$|\ 等字符（如常见的 "(60087660)" 用例ID后缀），
+// 未转义会导致正则语义错位，无法匹配到真实用例标题。
+export function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function encodeQueryParams(url: string): string {
   // 查找问号位置
   const questionMarkIndex = url.indexOf('?');
@@ -403,9 +411,17 @@ export function generateCommands(
   const fileMode = process.env.TESTSOLAR_TTP_FILEMODE == "1";
   
   // 获取 grep 模式（在 fileMode 下不使用 grep）
+  // 注意：Playwright 会把 --grep 的值当作正则表达式（forceRegExp 内部执行 new RegExp(pattern, "gi")）。
+  // 用例标题中常见的 "(" ")" "." "*" "?" "+" "[" "]" "{" "}" "^" "$" "|" "\" 在正则中都有特殊含义，
+  // 若不转义会导致用例标题（比如带 "(60087660)" 这种 ID 后缀）无法与真实标题正确匹配，
+  // Playwright 过滤后测试数为 0，进而抛出 "No tests found." 错误。
+  // 因此这里对每个用例名单独转义正则特殊字符，再用未转义的 "|" 拼接多个用例做 OR 匹配。
   let grepPattern = "";
   if (testCases.length > 0 && !fileMode && !runAllCases) {
-    grepPattern = `--grep="${decodeURIComponent(testCases.join("|"))}"`;
+    const escapedPattern = testCases
+      .map((testCase) => escapeRegExp(decodeURIComponent(testCase)))
+      .join("|");
+    grepPattern = `--grep="${escapedPattern}"`;
   }
 
   let command;
