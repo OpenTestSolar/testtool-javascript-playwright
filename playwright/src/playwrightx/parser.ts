@@ -19,6 +19,14 @@ import { TestCase } from "testsolar-oss-sdk/src/testsolar_sdk/model/test";
 
 import Reporter from "testsolar-oss-sdk/src/testsolar_sdk/reporter";
 
+const LOAD_MAX_BUFFER = 64 * 1024 * 1024;
+const ERROR_SNIPPET_LENGTH = 2000;
+
+function truncate(text: string): string {
+  return text.length > ERROR_SNIPPET_LENGTH
+    ? `${text.slice(0, ERROR_SNIPPET_LENGTH)}...`
+    : text;
+}
 
 export async function collectTestCases(
   projPath: string,
@@ -62,29 +70,53 @@ export async function collectTestCases(
       // 扫描Playwright测试文件
       loadCaseResult = scanPlaywrightTestFiles(projPath);
     } else {
-      // 如果环境变量未设置，则按原来的方式解析用例
-      // 执行命令获取output.json文件内容
-      const command = `npx playwright test --list --reporter=json > ${filePath}`;
-      log.info("Run Command: ", command);
-      const { stdout, stderr } = await executeCommand(command);
+      // 通过 PLAYWRIGHT_JSON_OUTPUT_NAME 让 json reporter 直接写文件，
+      // 避免被测项目在 config/用例加载阶段输出到 stdout 的日志污染 JSON
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      const command = "npx playwright test --list --reporter=json";
+      log.info("Run Command: ", command, `(PLAYWRIGHT_JSON_OUTPUT_NAME=${filePath})`);
+      const { stdout, stderr, error } = await executeCommand(command, {
+        env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: filePath },
+        maxBuffer: LOAD_MAX_BUFFER,
+      });
       log.info("stdout:", stdout);
       log.info("stderr:", stderr);
 
-      //TODO 解析output.json文件内容, 待完善，重跑用例加上数据驱动
-      const fileContent = fs.readFileSync(filePath, "utf-8");
-      const testData = JSON.parse(fileContent);
+      if (!fs.existsSync(filePath)) {
+        const detail = truncate(stderr || stdout || error?.message || "");
+        result.LoadErrors.push(
+          new LoadError(
+            "playwright-list-failed",
+            `执行 "${command}" 未生成用例列表文件 ${filePath}${error ? `，命令异常: ${error.message}` : ""}\n${detail}`,
+          ),
+        );
+        return result;
+      }
 
-      // 解析所有用例
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      let testData;
+      try {
+        testData = JSON.parse(fileContent);
+      } catch (e) {
+        result.LoadErrors.push(
+          new LoadError(
+            "playwright-json-parse-error",
+            `解析用例列表文件 ${filePath} 失败: ${(e as Error).message}\n文件开头内容:\n${truncate(fileContent)}`,
+          ),
+        );
+        return result;
+      }
+
       loadCaseResult = parseTestcase(projPath, testData);
+
+      // 如果用例为空，则通过解析json来获取错误信息
+      if (loadCaseResult.length === 0) {
+        result.LoadErrors.push(...parsePlaywrightReport(fileContent));
+      }
     }
     log.info("PlayWright testtool parse all testcases: \n", loadCaseResult);
-
-    // 如果用例为空，则通过解析json来获取错误信息
-    if (loadCaseResult.length === 0 && !fileMode) {
-      const fileContent = fs.readFileSync(filePath, "utf-8");
-      const errors = parsePlaywrightReport(fileContent);
-      result.LoadErrors.push(...errors); // 使用LoadResult中定义的属性名
-    }
 
     // 过滤用例
     let filterResult;
@@ -128,6 +160,7 @@ export async function collectTestCases(
       (error as Error).message ||
       "Parse json file error, please check the file content!";
     log.error(errorMessage);
+    result.LoadErrors.push(new LoadError("playwright-load-error", errorMessage));
   }
 
   return result;

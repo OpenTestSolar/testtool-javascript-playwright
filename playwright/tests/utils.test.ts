@@ -198,10 +198,45 @@ describe("parseTestcase", () => {
       ],
     };
     const result = parseTestcase(projPath, data);
+    // 嵌套 suite 沿用顶层用例文件 suite1.js，而不是 describe 所在的 suite2.js
     expect(result).toEqual([
       "tests/suite1.js?Suite%201%20Spec%201",
-      "tests/suite2.js?Suite%202%20Spec%202",
+      "tests/suite1.js?Suite%202%20Spec%202",
       "tests/suite3.js?Spec%201",
+    ]);
+  });
+
+  test("describe 定义在被 spec 导入的非用例文件中时，用例路径应为 spec 文件", () => {
+    const projPath = "/project";
+    const data = {
+      config: { rootDir: "/project/tests" },
+      suites: [
+        {
+          title: "projectCenter/index.spec.ts",
+          file: "projectCenter/index.spec.ts",
+          specs: [],
+          suites: [
+            {
+              title: "项目中心",
+              file: "projectCenter/index.spec.ts",
+              specs: [],
+              suites: [
+                {
+                  title: "客户管理",
+                  file: "projectCenter/cases/client/index.ts",
+                  specs: [
+                    { title: "新建客户", file: "projectCenter/cases/client/index.ts" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = parseTestcase(projPath, data);
+    expect(result).toEqual([
+      encodeQueryParams("tests/projectCenter/index.spec.ts?客户管理 新建客户"),
     ]);
   });
 });
@@ -483,6 +518,44 @@ describe("parseJsonContent", () => {
         },
       ]
     });
+  });
+
+  test("嵌套 describe 定义在非用例文件中时，结果 key 应与 parseTestcase 的用例名一致", () => {
+    const projPath = "/project";
+    const nestedSuite = {
+      title: "客户管理",
+      file: "projectCenter/cases/client/index.ts",
+      specs: [
+        {
+          title: "新建客户",
+          file: "projectCenter/cases/client/index.ts",
+          tests: [
+            {
+              annotations: [],
+              projectId: "chromium",
+              results: [{ startTime: "2023-01-01T00:00:00Z", duration: 1000, status: "passed" }],
+            },
+          ],
+        },
+      ],
+    };
+    const data = {
+      config: { rootDir: "/project/tests" },
+      suites: [
+        {
+          title: "projectCenter/index.spec.ts",
+          file: "projectCenter/index.spec.ts",
+          specs: [],
+          suites: [
+            { title: "项目中心", file: "projectCenter/index.spec.ts", specs: [], suites: [nestedSuite] },
+          ],
+        },
+      ],
+    };
+    const result = parseJsonContent(projPath, data);
+    const [loadName] = parseTestcase(projPath, data as never);
+    expect(Object.keys(result)).toEqual(["tests/projectCenter/index.spec.ts?客户管理 新建客户"]);
+    expect(decodeURIComponent(loadName)).toEqual(Object.keys(result)[0]);
   });
 });
 

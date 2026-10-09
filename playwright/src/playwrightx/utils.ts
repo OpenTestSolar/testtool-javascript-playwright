@@ -125,7 +125,7 @@ interface PlaywrightReport {
   errors: Array<{
     message: string;
     stack: string;
-    location: {
+    location?: {
       file: string;
       column: number;
       line: number;
@@ -184,10 +184,14 @@ export function encodeQueryParams(url: string): string {
 // 执行命令并返回结果
 export async function executeCommand(
   command: string,
+  options?: child_process.ExecOptions,
 ): Promise<{ stdout: string; stderr: string; error?: Error }> {
   try {
-    const { stdout, stderr } = await exec(command);
-    return { stdout, stderr };
+    const { stdout, stderr } = await exec(command, {
+      ...options,
+      encoding: "utf-8",
+    });
+    return { stdout: String(stdout), stderr: String(stderr) };
   } catch (error) {
     const typedError = error as Error & { stdout: string; stderr: string }; // 类型断言
     // log.error(
@@ -354,27 +358,27 @@ export const parseTestcase = (
   projPath: string,
   data: Data,
   rootDir: string | null = null,
+  specFile: string | null = null,
 ): string[] => {
   let testcases: string[] = [];
   const rootPath = rootDir ? rootDir : data.config.rootDir;
 
   data.suites.forEach((suite: Suite) => {
-    let casePath = (rootPath + "/" + suite.file).replace(`${projPath}/`, "");
+    // 顶层 suite 的 file 才是真实的用例文件；嵌套 suite 的 file 是 describe 的调用位置，
+    // 当 describe 写在被 spec 导入的辅助文件中（如 cases/xx/index.ts）时它并不是用例文件，
+    // 因此嵌套 suite 统一沿用顶层用例文件
+    const file = specFile ?? suite.file;
+    const casePath = (rootPath + "/" + file).replace(`${projPath}/`, "");
     if (suite.suites) {
       const cases = parseTestcase(
         projPath,
         { config: data.config, suites: suite.suites },
         rootPath,
+        file,
       );
       testcases = testcases.concat(cases);
     } else {
-      let desc = "";
-      if (suite.title === suite.file) {
-        desc = "";
-        casePath = (rootPath + "/" + suite.file).replace(`${projPath}/`, "");
-      } else {
-        desc = suite.title;
-      }
+      const desc = suite.title === suite.file ? "" : suite.title;
 
       suite.specs.forEach((spec: Spec) => {
         const caseName = spec.title;
@@ -564,7 +568,12 @@ export function parseJsonContent(
   const caseResults: Record<string, SpecResult[]> = {};
 
   // 解析 suites 数组并处理用例结果
-  const parseSuites = (suites: Suite[], currentRootPath: string | null) => {
+  // specFile: 顶层 suite 对应的真实用例文件，嵌套 suite 沿用它（原因同 parseTestcase）
+  const parseSuites = (
+    suites: Suite[],
+    currentRootPath: string | null,
+    specFile: string | null = null,
+  ) => {
     log.info(`正在解析 suites。suites 数量: ${suites.length}`);
     for (const suite of suites) {
       const desc = suite.title === suite.file ? "" : suite.title;
@@ -575,11 +584,11 @@ export function parseJsonContent(
         for (const spec of suite.specs) {
           const specTitle = spec.title;
           log.info(`正在处理 spec: ${specTitle}`);
-          const specFile = handlePath(
+          const specFilePath = handlePath(
             projPath,
-            `${currentRootPath}/${spec.file}`,
+            `${currentRootPath}/${specFile ?? spec.file}`,
           );
-          const specName = `${specFile}?${desc ? desc + " " : ""}${specTitle}`;
+          const specName = `${specFilePath}?${desc ? desc + " " : ""}${specTitle}`;
           log.info(`Spec 名称: ${specName}`);
           let specResult: SpecResult | null = null;
 
@@ -723,7 +732,7 @@ export function parseJsonContent(
 
         if (suite.suites) {
           log.info(`正在处理 suite 的嵌套 suites: ${suite.title}`);
-          parseSuites(suite.suites, currentRootPath);
+          parseSuites(suite.suites, currentRootPath, specFile ?? suite.file);
         }
       }
     };
@@ -1026,16 +1035,19 @@ export function parsePlaywrightReport(jsonData: string): LoadError[] {
     // 处理错误信息
     if (report.errors.length > 0) {
       report.errors.forEach((error) => {
-        const errorMessage = error.message.split('\n')[0];
+        const rawMessage = error.message || error.stack || "";
+        const errorMessage = rawMessage.split('\n')[0];
         let solution = "";
 
         // 提取建议的解决方案
-        if (error.message.includes('Instead change')) {
-          solution = error.message.split('\n')[1].trim();
+        if (rawMessage.includes('Instead change')) {
+          solution = (rawMessage.split('\n')[1] || "").trim();
         }
 
-        // 创建错误名称和完整消息
-        const errorName = `${error.location.file}:${error.location.line}:${error.location.column}`;
+        // 创建错误名称和完整消息（config 加载失败、No tests found 等错误没有 location）
+        const errorName = error.location
+          ? `${error.location.file}:${error.location.line}:${error.location.column}`
+          : "playwright-error";
         const fullErrorMessage = solution
           ? `${errorMessage}\n解决方案: ${solution}`
           : errorMessage;
