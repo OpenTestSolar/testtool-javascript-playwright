@@ -1,0 +1,39 @@
+playwright/package.json
+  h_08dfd81acc5f3e 3
+playwright/src/playwrightx/parser.ts
+  s_29997ce6e3272d::t_c35d611e545497 163
+  s_29997ce6e3272d::t_e5d6aa04e717e8 73-83,87-97,99-110,114-117,119
+  s_29997ce6e3272d::t_7703436d5c0b44 22-29
+playwright/tests/utils.test.ts
+  s_29997ce6e3272d::t_ea6ace0087a8b2 201,204,208-239
+  s_29997ce6e3272d::t_850bcaa2c72f36 241,522-559
+playwright/src/playwrightx/utils.ts
+  s_29997ce6e3272d::t_dc27edf95d8985 128
+  s_29997ce6e3272d::t_0d507445044f79 571-576
+  s_29997ce6e3272d::t_dbb1ca50bd583e 587,589,591
+  s_29997ce6e3272d::t_ab95eea7be9e91 735
+  s_29997ce6e3272d::t_d2dfc353bcd7f3 1038-1039,1043-1044,1047-1050
+  s_29997ce6e3272d::t_f23670be0063b8 187,190-194
+  s_29997ce6e3272d::t_1522183d2fce77 361,367-371,377,381
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.13",
+  "base_commit_sha": "c1e431f7d7f5c78e74d3a67adc4be1f61bdbb93f",
+  "prompts": {},
+  "humans": {
+    "h_08dfd81acc5f3e": {
+      "author": "erickangxu <erickangxu@tencent.com>"
+    }
+  },
+  "sessions": {
+    "s_29997ce6e3272d": {
+      "agent_id": {
+        "tool": "codebuddy",
+        "id": "ba96e9486c2c47468b7dfd769283e9eb",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "erickangxu <erickangxu@tencent.com>"
+    }
+  }
+}
